@@ -1,0 +1,2735 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with jLaTeX2HTML 2002 (1.62) JA patch-1.4
+patched version by:  Kenshi Muto, Debian Project.
+LaTeX2HTML 2002 (1.62),
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>The Finite Element Method FEM</TITLE>
+<META NAME="description" CONTENT="The Finite Element Method FEM">
+<META NAME="keywords" CONTENT="source">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="jLaTeX2HTML v2002 JA patch-1.4">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="source.css">
+
+<LINK REL="previous" HREF="node29.html">
+<LINK REL="up" HREF="node21.html">
+<LINK REL="next" HREF="node32.html">
+</HEAD>
+
+<BODY  bgcolor="#ffffff">
+<!--Navigation Panel-->
+<A NAME="tex2html569"
+  HREF="node32.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html565"
+  HREF="node21.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html561"
+  HREF="node30.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html567"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html570"
+  HREF="node32.html">PARTIAL DIFFERENTIAL EQUATIONS (PDE's)</A>
+<B> Up:</B> <A NAME="tex2html566"
+  HREF="node21.html">BOUNDARY VALUE PROBLEMS (BVP)</A>
+<B> Previous:</B> <A NAME="tex2html562"
+  HREF="node30.html">Variational formulation for a</A>
+ &nbsp <B>  <A NAME="tex2html568"
+  HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION02026000000000000000">
+The Finite Element Method FEM</A>
+</H2>
+This is a specific Galerkin method, and as such the trial and test
+spaces are the same and the aim is to make the residual orthogonal to
+all elements in the space. First, some references. A good beginning book
+is Claes Johnson's ``Numerical Solution of PDE's'' (1987), other books
+are Phillippe Ciarlet's ``FEM for Elliptic Problems'' (1978) and Brenner
+and Scott's ``FEM for PDE's'' (1999). Most of these books emphasize the
+mathematical aspects. However, a lot of work has been put on the
+implementation side, which is a crucial component of the method and is
+unfortunately glossed over in these more mathematical books. Some good
+references on implementation issues are: .
+
+<P>
+As the name implies, finite elements use basis sets that are compactly
+supported. There are some nice advantages of FEM: 
+
+<P>
+(1) mathematical- you
+are forced to think from the outset what function spaces you are using
+and in what sense, then, is a computed solution ``close'' to the exact
+solution, i.e. the spaces have built-in norms. A second mathematical
+aspect is that in casting the problem mathematically, one is forced to
+seriously consider whether the partial differential equation, or
+ordinary differential equation, is well-posed. That is not to say that
+you can use the analysis of Galerkin and the proceed to implement the
+approximate solution by some non-Galerkin technique. 
+
+<P>
+(2) computationally - the
+technique allows us to obtain the solution everywhere in the domain, not
+just at grid locations. This, in contrast to a spectral (a special
+collocation case) or finite-difference technique, where you are
+approximating the solution at a finite set of grid locations. That is
+not to say that you can circumvent this issue by careful interpolation,
+but this is already provided by the Galerkin technique (and more
+importantly, you know an error estimate everywhere in the domain).
+Perhaps the most important advantage is that the technique lends itself
+very naturally to tiling very complex domains with elements that fit
+more naturally than simple uniform or rectangular lattices. It is thus
+very popular in boundary value problems (and eigenvalue problems) that
+come from very complex structures, such as bridges, buildings,structural
+components of vehicles, etc. This has been made considerably easier to
+do lately, with the availability of very smart automated mesh generation
+packages (well, in 2d...but things are getting better in 3d), 
+which take care of the most tedious and difficult part of the 
+implementation of the method.
+
+<P>
+Again, here we focus only on elliptic problems with simple boundary
+conditions.
+
+<P>
+<U>Dirichlet Model Problem</U>
+ Consider
+<BR>
+<DIV ALIGN="CENTER"><A NAME="eq.sf"></A><!-- MATH
+ \begin{eqnarray}
+-\mbox{div} (a \, \mbox{grad}  u) &=& f, \qquad \mbox{ on }  \Omega(x,y)
+\nonumber \\
+u & =& 0, \qquad \mbox{ on } \partial\Omega.
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE">
+<TD WIDTH=10 ALIGN="LEFT">
+&nbsp;</TD>
+<TD NOWRAP ALIGN="RIGHT"><IMG
+ WIDTH="20" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img450.png"
+ ALT="$\displaystyle -$">div<IMG
+ WIDTH="25" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1504.png"
+ ALT="$\displaystyle (a  $">&nbsp; &nbsp;grad<IMG
+ WIDTH="23" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1505.png"
+ ALT="$\displaystyle u)$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="19" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img305.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP><IMG
+ WIDTH="20" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1506.png"
+ ALT="$\displaystyle f,$">&nbsp; &nbsp; on <IMG
+ WIDTH="62" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1507.png"
+ ALT="$\displaystyle \Omega(x,y)$"></TD></TR>
+<TR VALIGN="MIDDLE">
+<TD WIDTH=10 ALIGN="LEFT">
+(112)</TD>
+<TD NOWRAP ALIGN="RIGHT"><IMG
+ WIDTH="15" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1508.png"
+ ALT="$\displaystyle u$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="19" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img305.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP><IMG
+ WIDTH="19" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1509.png"
+ ALT="$\displaystyle 0,$">&nbsp; &nbsp; on <IMG
+ WIDTH="34" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1510.png"
+ ALT="$\displaystyle \partial\Omega.$"></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+Here <!-- MATH
+ $\Omega \subseteq \mathbb{R}^2$
+ -->
+<IMG
+ WIDTH="65" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1511.png"
+ ALT="$ \Omega \subseteq \mathbb{R}^2$">, <!-- MATH
+ $a, u, f: \Omega \rightarrow
+\mathbb{R}$
+ -->
+<IMG
+ WIDTH="126" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1512.png"
+ ALT="$ a, u, f: \Omega \rightarrow
+\mathbb{R}$">. We assume that <!-- MATH
+ $0 \le \underline{a} \leq a(x,y) \leq
+\overline a$
+ -->
+<IMG
+ WIDTH="163" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1513.png"
+ ALT="$ 0 \le \underline{a} \leq a(x,y) \leq
+\overline a$">. We call this the <B>Strong Formulation (SF)</B>.
+
+<P>
+A reminder:
+<BR>
+<DIV ALIGN="CENTER">
+<!-- MATH
+ \begin{eqnarray*}
+\mbox{grad} u & \equiv & \frac{\partial u}{\partial x} \hat x + \frac{\partial
+u}{\partial y} \hat y, \\
+-\mbox{div}(a \, \mbox{grad} u) & \equiv &  - \frac{\partial}{\partial x} (a
+\frac{\partial u}{\partial x}) - \frac{\partial }{\partial y}
+(a \frac{\partial u}{\partial y}).
+\end{eqnarray*}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE">
+<TD WIDTH=10 ALIGN="LEFT">
+&nbsp;</TD>
+<TD NOWRAP ALIGN="RIGHT">grad<IMG
+ WIDTH="15" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1508.png"
+ ALT="$\displaystyle u$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="20" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1514.png"
+ ALT="$\displaystyle \equiv$"></TD>
+<TD ALIGN="LEFT" NOWRAP><IMG
+ WIDTH="104" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1515.png"
+ ALT="$\displaystyle \frac{\partial u}{\partial x} \hat x + \frac{\partial
+u}{\partial y} \hat y,$"></TD></TR>
+<TR VALIGN="MIDDLE">
+<TD WIDTH=10 ALIGN="LEFT">
+&nbsp;</TD>
+<TD NOWRAP ALIGN="RIGHT"><IMG
+ WIDTH="20" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img450.png"
+ ALT="$\displaystyle -$">div<IMG
+ WIDTH="25" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1504.png"
+ ALT="$\displaystyle (a  $">&nbsp; &nbsp;grad<IMG
+ WIDTH="23" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1505.png"
+ ALT="$\displaystyle u)$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="20" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1514.png"
+ ALT="$\displaystyle \equiv$"></TD>
+<TD ALIGN="LEFT" NOWRAP><IMG
+ WIDTH="197" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1516.png"
+ ALT="$\displaystyle - \frac{\partial}{\partial x} (a
+\frac{\partial u}{\partial x}) - \frac{\partial }{\partial y}
+(a \frac{\partial u}{\partial y}).$"></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+<B>Remark</B>: note that when <IMG
+ WIDTH="49" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1517.png"
+ ALT="$a=1$">, we get the standard Poisson Equation
+problem we've studied before.
+
+<P>
+<B>Weak Formulation (WF)</B>: Find <IMG
+ WIDTH="15" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img801.png"
+ ALT="$u$">, vanishing on <!-- MATH
+ $\delta \Omega$
+ -->
+<IMG
+ WIDTH="27" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1518.png"
+ ALT="$ \delta \Omega$">, such
+that
+<BR>
+<DIV ALIGN="CENTER"><A NAME="wkform"></A><!-- MATH
+ \begin{eqnarray}
+\int_\Omega a \, \mbox{grad} u \cdot \mbox{grad} v \, dx dy = \int_\Omega f
+v \, dx dy, \qquad \forall  \, v \qquad \mbox{which vanish on $\delta \Omega$}.
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE">
+<TD WIDTH=10 ALIGN="LEFT">
+(113)</TD>
+<TD NOWRAP ALIGN="RIGHT"><IMG
+ WIDTH="42" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1519.png"
+ ALT="$\displaystyle \int_\Omega a  $">&nbsp; &nbsp;grad<IMG
+ WIDTH="21" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1520.png"
+ ALT="$\displaystyle u \cdot$">&nbsp; &nbsp;grad<IMG
+ WIDTH="240" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1521.png"
+ ALT="$\displaystyle v   dx dy = \int_\Omega f
+v   dx dy, \qquad \forall   v$">&nbsp; &nbsp;<IMG
+ WIDTH="164" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1522.png"
+ ALT="$\displaystyle \mbox{which vanish on $\delta \Omega$}$"><IMG
+ WIDTH="10" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img592.png"
+ ALT="$\displaystyle .
+$"></TD>
+<TD>&nbsp;</TD>
+<TD>&nbsp;</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+<U>Derivation</U>:
+Use the divergence theorem (integration by parts in
+multi-dimensions). For <IMG
+ WIDTH="21" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1523.png"
+ ALT="$ {\bf w}$"> and <IMG
+ WIDTH="14" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1420.png"
+ ALT="$v$">, 
+<!-- MATH
+ \begin{displaymath}
+\int_\Omega (\mbox{div} {\bf w}) v \, dx dy = -\int_\Omega {\bf w} \cdot
+\mbox{grad} v  \, dx dy + \int_{\delta \Omega} {\bf w}\cdot {\bf\hat n}
+\, v \, ds,
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="33" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1524.png"
+ ALT="$\displaystyle \int_\Omega ($">div<IMG
+ WIDTH="169" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1525.png"
+ ALT="$\displaystyle {\bf w}) v   dx dy = -\int_\Omega {\bf w} \cdot$">&nbsp; &nbsp;grad<IMG
+ WIDTH="193" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1526.png"
+ ALT="$\displaystyle v   dx dy + \int_{\delta \Omega} {\bf w}\cdot {\bf\hat n}
+  v   ds,
+$">
+</DIV><P></P>
+where <!-- MATH
+ ${\bf\hat n}$
+ -->
+<IMG
+ WIDTH="17" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1527.png"
+ ALT="$ {\bf\hat n}$"> is the outward normal to <IMG
+ WIDTH="18" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img22.png"
+ ALT="$\Omega $"> 
+
+<P>
+Let <!-- MATH
+ ${\bf w} = a \, \mbox{grad} u$
+ -->
+<IMG
+ WIDTH="59" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1528.png"
+ ALT="$ {\bf w} = a  $">&nbsp; &nbsp;grad<IMG
+ WIDTH="15" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img801.png"
+ ALT="$u$"> yields (<A HREF="node31.html#wkform">113</A>), using <IMG
+ WIDTH="49" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1529.png"
+ ALT="$ v=0$"> on
+<!-- MATH
+ $\delta \Omega$
+ -->
+<IMG
+ WIDTH="27" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1518.png"
+ ALT="$ \delta \Omega$">.
+
+<P>
+More precisely: for the <B>SF</B> we require <IMG
+ WIDTH="58" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1530.png"
+ ALT="$ a(x,y)$"> differentiable, and
+<IMG
+ WIDTH="15" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img801.png"
+ ALT="$u$"> twice differentiable, i.e. <IMG
+ WIDTH="60" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1531.png"
+ ALT="$ a \in C^1$"> and <IMG
+ WIDTH="61" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1532.png"
+ ALT="$ u \in C^2$">. For the <B>WF</B> we require <IMG
+ WIDTH="15" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img139.png"
+ ALT="$a$"> integrable and <!-- MATH
+ $\mbox{grad} u \cdot \mbox{grad} v$
+ -->
+grad<IMG
+ WIDTH="21" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1533.png"
+ ALT="$ u \cdot$">&nbsp; &nbsp;grad<IMG
+ WIDTH="14" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1420.png"
+ ALT="$v$">
+integrable. 
+
+<P>
+<B>A little detour</B>: we remind ourselves that a function space 
+<!-- MATH
+ $L^2(\Omega)$
+ -->
+<IMG
+ WIDTH="53" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1534.png"
+ ALT="$ L^2(\Omega)$"> is comprised of the set of functions <IMG
+ WIDTH="15" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img801.png"
+ ALT="$u$"> for which 
+<!-- MATH
+ \begin{displaymath}
+\int_\Omega |u|^2 d \Omega < \infty.
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="131" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1535.png"
+ ALT="$\displaystyle \int_\Omega \vert u\vert^2 d \Omega &lt; \infty.
+$">
+</DIV><P></P>
+
+<P>
+Example: Take the function <IMG
+ WIDTH="60" HEIGHT="20" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1536.png"
+ ALT="$ u=x^\beta$"> and ask for what values of
+<IMG
+ WIDTH="16" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1168.png"
+ ALT="$\beta$"> is <IMG
+ WIDTH="15" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img801.png"
+ ALT="$u$"> an element of <IMG
+ WIDTH="25" HEIGHT="20" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1537.png"
+ ALT="$L^2$"> over the whole real line. If <IMG
+ WIDTH="15" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img31.png"
+ ALT="$x$"> and
+<IMG
+ WIDTH="16" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1168.png"
+ ALT="$\beta$"> are real, 
+<!-- MATH
+ \begin{displaymath}
+\int_{-\infty}^\infty x^{2\beta} dx < \infty
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="134" HEIGHT="61" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1538.png"
+ ALT="$\displaystyle \int_{-\infty}^\infty x^{2\beta} dx &lt; \infty
+$">
+</DIV><P></P>
+if <!-- MATH
+ $\beta > -1/2$
+ -->
+<IMG
+ WIDTH="84" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1539.png"
+ ALT="$ \beta &gt; -1/2$">.
+
+<P>
+The <EM>Sobolev Space</EM> is a function space defined by the integrability
+of its elements. The Sobolev space <!-- MATH
+ $H^1(\Omega)$
+ -->
+<IMG
+ WIDTH="57" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1540.png"
+ ALT="$ H^1(\Omega)$"> is defined as
+<!-- MATH
+ \begin{displaymath}
+H^1(\Omega) = \left\{ u \in L^2(\Omega) | \qquad \partial_{x_i} u \in
+L^2(\Omega) \right\}
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="335" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1541.png"
+ ALT="$\displaystyle H^1(\Omega) = \left\{ u \in L^2(\Omega) \vert \qquad \partial_{x_i} u \in
+L^2(\Omega) \right\}
+$">
+</DIV><P></P>
+i.e. the function and all of its first derivatives are
+<!-- MATH
+ $L^2(\Omega)$
+ -->
+<IMG
+ WIDTH="53" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1534.png"
+ ALT="$ L^2(\Omega)$">. So, looking at spaces, <!-- MATH
+ $L^2 \supset H^1 \supset C^2 \supset C^1$
+ -->
+<IMG
+ WIDTH="171" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1542.png"
+ ALT="$ L^2 \supset H^1 \supset C^2 \supset C^1$">.
+Another space, which we will make use of:
+<!-- MATH
+ \begin{displaymath}
+H_0^1(\Omega) =\left\{ u \in H^1(\Omega) | \qquad u = 0 \qquad \mbox{ on }
+\delta \Omega \right\}
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="371" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1543.png"
+ ALT="$\displaystyle H_0^1(\Omega) =\left\{ u \in H^1(\Omega) \vert \qquad u = 0 \qquad \mbox{ on }
+\delta \Omega \right\}
+$">
+</DIV><P></P>
+
+<P>
+<U>Theorem</U>: If <IMG
+ WIDTH="61" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1532.png"
+ ALT="$ u \in C^2$"> and <IMG
+ WIDTH="15" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img801.png"
+ ALT="$u$"> satisfies the <B>SF</B> then
+<IMG
+ WIDTH="15" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img801.png"
+ ALT="$u$"> satisfies the <B>WF</B>.
+The proof is above.
+
+<P>
+<U>Theorem</U>: The <B>WF</B> has a unique solution.
+
+<P>
+<B>The Variational Problem (V)</B>: Find <!-- MATH
+ $u \in H^1_0(\Omega)$
+ -->
+<IMG
+ WIDTH="91" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1544.png"
+ ALT="$ u \in H^1_0(\Omega)$"> such that
+<!-- MATH
+ \begin{displaymath}
+E(u) = \min_{v \in H^1_0} E(v),
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="152" HEIGHT="47" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1545.png"
+ ALT="$\displaystyle E(u) = \min_{v \in H^1_0} E(v),
+$">
+</DIV><P></P>
+where 
+<!-- MATH
+ \begin{displaymath}
+E(v) = \frac{1}{2} \int_{\Omega} a | \mbox{grad} \, v|^2 \, d \Omega -
+\int_\Omega f \, v  \, d \Omega,
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="125" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1546.png"
+ ALT="$\displaystyle E(v) = \frac{1}{2} \int_{\Omega} a \vert$">&nbsp; &nbsp;grad<IMG
+ WIDTH="160" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1547.png"
+ ALT="$\displaystyle   v\vert^2   d \Omega -
+\int_\Omega f   v   d \Omega,
+$">
+</DIV><P></P>
+so that  the functional <!-- MATH
+ $E:H^1_0 \rightarrow \mathbf{R}$
+ -->
+<IMG
+ WIDTH="106" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1548.png"
+ ALT="$ E:H^1_0 \rightarrow \mathbf{R}$">.
+
+<P>
+<U>Theorem</U> <IMG
+ WIDTH="15" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img801.png"
+ ALT="$u$"> satisfies the <B>WF</B> if and only if <IMG
+ WIDTH="15" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img801.png"
+ ALT="$u$">
+satisfies the variational problem.
+
+<P>
+<U>Proof</U>: suppose <IMG
+ WIDTH="15" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img801.png"
+ ALT="$u$"> satisfies the <B>WF</B>. Let's evaluate
+<!-- MATH
+ \begin{displaymath}
+E(v) = E(u+(v-u)) = \frac{1}{2} \int a | \mbox{grad} \, u +
+\mbox{grad}\, (v-u)|^2 - \int f(u+(v-u)).
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="269" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1549.png"
+ ALT="$\displaystyle E(v) = E(u+(v-u)) = \frac{1}{2} \int a \vert$">&nbsp; &nbsp;grad<IMG
+ WIDTH="33" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1550.png"
+ ALT="$\displaystyle   u +$">&nbsp; &nbsp;grad<IMG
+ WIDTH="247" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1551.png"
+ ALT="$\displaystyle   (v-u)\vert^2 - \int f(u+(v-u)).
+$">
+</DIV><P></P>
+Note that the integral sign assumes the integration is over the whole
+domain <IMG
+ WIDTH="18" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img22.png"
+ ALT="$\Omega $">. Expanding the first integral
+<!-- MATH
+ \begin{displaymath}
+E(v) = E(u) + \frac{1}{2} \int a | \mbox{grad} (v-u)|^2 +
+\int a \mbox{grad}u \cdot \mbox{grad} \, (v-u) - \int f(v-u).
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="186" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1552.png"
+ ALT="$\displaystyle E(v) = E(u) + \frac{1}{2} \int a \vert$">&nbsp; &nbsp;grad<IMG
+ WIDTH="131" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1553.png"
+ ALT="$\displaystyle (v-u)\vert^2 +
+\int a$">&nbsp; &nbsp;grad<IMG
+ WIDTH="21" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1520.png"
+ ALT="$\displaystyle u \cdot$">&nbsp; &nbsp;grad<IMG
+ WIDTH="187" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1554.png"
+ ALT="$\displaystyle   (v-u) - \int f(v-u).
+$">
+</DIV><P></P>
+The last two terms are zero since <B>WF</B> holds. Then
+<!-- MATH
+ \begin{displaymath}
+E(v) = E(u) + \frac{1}{2} \int a |\mbox{grad} \, (v-u)|^2 \geq E(u)
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="186" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1552.png"
+ ALT="$\displaystyle E(v) = E(u) + \frac{1}{2} \int a \vert$">grad<IMG
+ WIDTH="145" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1555.png"
+ ALT="$\displaystyle   (v-u)\vert^2 \geq E(u)
+$">
+</DIV><P></P>
+which implies the <B>VF</B>.
+<IMG
+ WIDTH="19" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img68.png"
+ ALT="$\Box$">
+
+<P>
+<B>Remark</B>: For non-self-adjoint problems, can have <B>WF</B> but no
+<B>VF</B>. Note, however, that any linear second order <B>SF</B> problem
+can be put in self adjoint form (see Sturm-Liouville theory).
+
+<P>
+The problem
+<!-- MATH
+ \begin{displaymath}
+- \mbox{div} \cdot (a \mbox{grad} \, u) + {\bf b}\cdot \mbox{grad} \, u
++ c u = f
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="20" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img450.png"
+ ALT="$\displaystyle -$">&nbsp; &nbsp;div<IMG
+ WIDTH="27" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1556.png"
+ ALT="$\displaystyle \cdot (a$">&nbsp; &nbsp;grad<IMG
+ WIDTH="66" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1557.png"
+ ALT="$\displaystyle   u) + {\bf b}\cdot$">&nbsp; &nbsp;grad<IMG
+ WIDTH="97" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1558.png"
+ ALT="$\displaystyle   u
++ c u = f
+$">
+</DIV><P></P>
+with zero Dirichlet boundary condtions has a <B>WF</B> but does not have
+a <B>VF</B> unless <IMG
+ WIDTH="17" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img519.png"
+ ALT="$ {\bf b}$"> is zero.
+
+<P>
+<U>Exercise</U> Let 
+<!-- MATH
+ \begin{displaymath}
+b(u,v) = \int [a \, \mbox{grad} \, u \cdot \mbox{grad} \, v +
+{\bf b}\cdot (\mbox{grad} \, u) \, v + c u v ]
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="118" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1559.png"
+ ALT="$\displaystyle b(u,v) = \int [a  $">&nbsp; &nbsp;grad<IMG
+ WIDTH="24" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1560.png"
+ ALT="$\displaystyle   u \cdot$">&nbsp; &nbsp;grad<IMG
+ WIDTH="74" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1561.png"
+ ALT="$\displaystyle   v +
+{\bf b}\cdot ($">grad<IMG
+ WIDTH="95" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1562.png"
+ ALT="$\displaystyle   u)   v + c u v ]
+$">
+</DIV><P></P>
+Let <!-- MATH
+ $E(w) = \frac{1}{2} b(w,w) - F(w)$
+ -->
+<IMG
+ WIDTH="209" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1563.png"
+ ALT="$ E(w) = \frac{1}{2} b(w,w) - F(w)$">. Use <IMG
+ WIDTH="94" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1564.png"
+ ALT="$ w=u+tv$">, i.e. thinking of
+<IMG
+ WIDTH="21" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1565.png"
+ ALT="$ tv$"> as a perturbation from <IMG
+ WIDTH="15" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img801.png"
+ ALT="$u$">. Find the stationary condition for <IMG
+ WIDTH="20" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1566.png"
+ ALT="$E$">
+about <IMG
+ WIDTH="46" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1567.png"
+ ALT="$t=0$">. What can you conclude from this calculation?
+
+<P>
+<IMG
+ WIDTH="19" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img68.png"
+ ALT="$\Box$">
+
+<P>
+<U>Theorem</U>: If <IMG
+ WIDTH="15" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img801.png"
+ ALT="$u$"> satisfies the <B>VF</B>, then <IMG
+ WIDTH="15" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img801.png"
+ ALT="$u$"> satisfies
+the <B>WF</B>.
+
+<P>
+<U>Proof</U>: Choose any <!-- MATH
+ $v\in H^1_0$
+ -->
+<IMG
+ WIDTH="62" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1568.png"
+ ALT="$ v\in H^1_0$">, and consider a real quantity
+<IMG
+ WIDTH="12" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1162.png"
+ ALT="$t$"> and <!-- MATH
+ $\rho:
+\mathbf{R} \rightarrow \mathbf{R}$
+ -->
+<IMG
+ WIDTH="92" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1569.png"
+ ALT="$ \rho:
+\mathbf{R} \rightarrow \mathbf{R}$">, defined as
+<!-- MATH
+ \begin{displaymath}
+\rho(t) = E(u+t v) = \frac{1}{2} \int a | \mbox{grad} u + t \mbox{grad}
+v|^2 - \int f(u+tv)
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="219" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1570.png"
+ ALT="$\displaystyle \rho(t) = E(u+t v) = \frac{1}{2} \int a \vert$">&nbsp; &nbsp;grad<IMG
+ WIDTH="45" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1571.png"
+ ALT="$\displaystyle u + t$">&nbsp; &nbsp;grad<IMG
+ WIDTH="149" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1572.png"
+ ALT="$\displaystyle v\vert^2 - \int f(u+tv)
+$">
+</DIV><P></P>
+if <!-- MATH
+ $\rho(0) = \min \rho(t)$
+ -->
+<IMG
+ WIDTH="129" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1573.png"
+ ALT="$ \rho(0) = \min \rho(t)$">, the <!-- MATH
+ $\rho'(0) = 0$
+ -->
+<IMG
+ WIDTH="77" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1574.png"
+ ALT="$ \rho'(0) = 0$">.
+<!-- MATH
+ \begin{displaymath}
+0 = \rho'(0) = \int \mbox{grad} \, u \cdot \mbox{grad} \, v - \int f \, v,
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="122" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1575.png"
+ ALT="$\displaystyle 0 = \rho'(0) = \int$">&nbsp; &nbsp;grad<IMG
+ WIDTH="24" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1560.png"
+ ALT="$\displaystyle   u \cdot$">&nbsp; &nbsp;grad<IMG
+ WIDTH="93" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1576.png"
+ ALT="$\displaystyle   v - \int f   v,
+$">
+</DIV><P></P>
+which is the <B>WF</B>.
+
+<P>
+In what follows we will define
+<BR>
+<DIV ALIGN="CENTER">
+<!-- MATH
+ \begin{eqnarray*}
+b(u,v) &\equiv& \int a \mbox{grad} u \cdot \mbox{grad} v \\
+ F(v) & \equiv & \int f v,
+\end{eqnarray*}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE">
+<TD WIDTH=10 ALIGN="LEFT">
+&nbsp;</TD>
+<TD NOWRAP ALIGN="RIGHT"><IMG
+ WIDTH="56" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1577.png"
+ ALT="$\displaystyle b(u,v)$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="20" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1514.png"
+ ALT="$\displaystyle \equiv$"></TD>
+<TD ALIGN="LEFT" NOWRAP><IMG
+ WIDTH="37" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1578.png"
+ ALT="$\displaystyle \int a$">&nbsp; &nbsp;grad<IMG
+ WIDTH="21" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1520.png"
+ ALT="$\displaystyle u \cdot$">&nbsp; &nbsp;grad<IMG
+ WIDTH="14" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1579.png"
+ ALT="$\displaystyle v$"></TD></TR>
+<TR VALIGN="MIDDLE">
+<TD WIDTH=10 ALIGN="LEFT">
+&nbsp;</TD>
+<TD NOWRAP ALIGN="RIGHT"><IMG
+ WIDTH="44" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1580.png"
+ ALT="$\displaystyle F(v)$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="20" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1514.png"
+ ALT="$\displaystyle \equiv$"></TD>
+<TD ALIGN="LEFT" NOWRAP><IMG
+ WIDTH="53" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1581.png"
+ ALT="$\displaystyle \int f v,$"></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+so that  <!-- MATH
+ $E(u) = \frac{1}{2} b(u,u) - F(u)$
+ -->
+<IMG
+ WIDTH="196" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1582.png"
+ ALT="$ E(u) = \frac{1}{2} b(u,u) - F(u)$">.
+
+<P>
+The numerical approximation of the <B>VF</B> problem is called the <EM>Rayleigh-Ritz Method</EM> and it can be summarized as follows: Choose a
+subspace <!-- MATH
+ $S_h \in H^1_0$
+ -->
+<IMG
+ WIDTH="73" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1583.png"
+ ALT="$ S_h \in H^1_0$">, where <IMG
+ WIDTH="25" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1584.png"
+ ALT="$ S_h$"> is finite dimensional
+subspace. Then, finding the <!-- MATH
+ $u_h \in S_h$
+ -->
+<IMG
+ WIDTH="67" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1585.png"
+ ALT="$ u_h \in S_h $"> that minimizes <IMG
+ WIDTH="44" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1586.png"
+ ALT="$ E(v)$"> yields
+an approximation to <!-- MATH
+ $u_h \approx u$
+ -->
+<IMG
+ WIDTH="60" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1587.png"
+ ALT="$ u_h \approx u$">, if <IMG
+ WIDTH="25" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1584.png"
+ ALT="$ S_h$"> is ``sufficiently large.''
+This could be called the <B>VF</B><IMG
+ WIDTH="13" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1588.png"
+ ALT="$ _h$"> problem.
+
+<P>
+The numerical approximation of the <B>WF</B> problem can be done using
+Galerkin techniques. Briefly, use a finite dimensional set of basis for
+<IMG
+ WIDTH="25" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1584.png"
+ ALT="$ S_h$">. Supposing <!-- MATH
+ $\mbox{dim} S_h = N$
+ -->
+dim<IMG
+ WIDTH="67" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1589.png"
+ ALT="$ S_h = N$">, 
+then, every function <IMG
+ WIDTH="14" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1420.png"
+ ALT="$v$"> in <IMG
+ WIDTH="25" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1584.png"
+ ALT="$ S_h$"> can be written as
+<!-- MATH
+ \begin{displaymath}
+v = \sum_{i=1}^N \alpha_i \phi_i.
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="109" HEIGHT="77" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1590.png"
+ ALT="$\displaystyle v = \sum_{i=1}^N \alpha_i \phi_i.
+$">
+</DIV><P></P>
+where <IMG
+ WIDTH="16" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1591.png"
+ ALT="$\phi$"> are the bases. Substituting in <B>WF</B> gives
+<!-- MATH
+ \begin{displaymath}
+b(u_h,v) = F(v)
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="129" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1592.png"
+ ALT="$\displaystyle b(u_h,v) = F(v)
+$">
+</DIV><P></P>
+or
+<!-- MATH
+ \begin{displaymath}
+b(\sum_{i=1}^N \alpha_i \phi_i,\phi_j) = F(\phi_j) \qquad i,j =
+1,2,\ldots N
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="354" HEIGHT="77" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1593.png"
+ ALT="$\displaystyle b(\sum_{i=1}^N \alpha_i \phi_i,\phi_j) = F(\phi_j) \qquad i,j =
+1,2,\ldots N
+$">
+</DIV><P></P>
+which is thus
+<!-- MATH
+ \begin{displaymath}
+\sum_{i=1}^N \alpha_i  b(\phi_i,\phi_j) = F(\phi_j) \qquad i,j =
+1,2,\ldots N.
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="358" HEIGHT="77" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1594.png"
+ ALT="$\displaystyle \sum_{i=1}^N \alpha_i b(\phi_i,\phi_j) = F(\phi_j) \qquad i,j =
+1,2,\ldots N.
+$">
+</DIV><P></P>
+<!-- MATH
+ $b(\phi_i,\phi_j)$
+ -->
+<IMG
+ WIDTH="70" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1595.png"
+ ALT="$ b(\phi_i,\phi_j)$"> with <!-- MATH
+ $i,j = 1,2,\ldots N$
+ -->
+<IMG
+ WIDTH="131" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1596.png"
+ ALT="$ i,j = 1,2,\ldots N$"> is a matrix, we shall call
+it the <EM>stiffness matrix</EM> <IMG
+ WIDTH="25" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img146.png"
+ ALT="$M$">, and <IMG
+ WIDTH="52" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1597.png"
+ ALT="$ F(\phi_j)$">, with 
+<!-- MATH
+ $j = 1,2,\ldots N$
+ -->
+<IMG
+ WIDTH="116" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1598.png"
+ ALT="$ j = 1,2,\ldots N$"> is a vector we shall call the <EM>load vector</EM> <IMG
+ WIDTH="18" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1599.png"
+ ALT="$ {\bf F}$">. 
+So in matrix notation, the task is to solve
+<!-- MATH
+ \begin{displaymath}
+M {\bf\alpha} = {\bf F}
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="76" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1600.png"
+ ALT="$\displaystyle M {\bf\alpha} = {\bf F}
+$">
+</DIV><P></P>
+for the unknown vector <!-- MATH
+ ${\bf\alpha}$
+ -->
+<IMG
+ WIDTH="17" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1601.png"
+ ALT="$ {\bf\alpha}$">.
+
+<P>
+What happens if the problem is instead nonlinear? for example, suppose
+we want to solve
+<!-- MATH
+ \begin{displaymath}
+-\mbox{div} \cdot (a(x,u) \mbox{grad} \, u(x)) = f(x) \qquad x \in
+\Omega
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="20" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img450.png"
+ ALT="$\displaystyle -$">div<IMG
+ WIDTH="71" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1602.png"
+ ALT="$\displaystyle \cdot (a(x,u)$">&nbsp; &nbsp;grad<IMG
+ WIDTH="197" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1603.png"
+ ALT="$\displaystyle   u(x)) = f(x) \qquad x \in
+\Omega
+$">
+</DIV><P></P>
+subject to the zero Dirichlet boundary conditions, with the usual
+assumptions on <IMG
+ WIDTH="59" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1604.png"
+ ALT="$ a(x,u)$">. In that case we are lead to a nonlinear set of
+equations, given by
+<!-- MATH
+ \begin{displaymath}
+\int a(x,\sum_j \alpha_j \phi_j) \mbox{grad} \, \phi_j \cdot \mbox{grad}
+\, \phi_i = \int f \phi_i
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="138" HEIGHT="61" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1605.png"
+ ALT="$\displaystyle \int a(x,\sum_j \alpha_j \phi_j)$">&nbsp; &nbsp;grad<IMG
+ WIDTH="31" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1606.png"
+ ALT="$\displaystyle   \phi_j \cdot$">&nbsp; &nbsp;grad<IMG
+ WIDTH="99" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1607.png"
+ ALT="$\displaystyle   \phi_i = \int f \phi_i
+$">
+</DIV><P></P>
+with <!-- MATH
+ $i,j=1,2,\ldots,N$
+ -->
+<IMG
+ WIDTH="139" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1608.png"
+ ALT="$ i,j=1,2,\ldots,N$">. We know how to solve these types of systems
+using a root finding algorithm (<A NAME="tex2html41"
+  HREF="http://www.physics.arizona.edu/~restrepo/475A/Notes/sourcea/node69.html">For Newton's method, see</A>).
+
+<P>
+<U>Exercise</U> Set up the <B>WF</B> problem and its Galerkin
+approximation for
+<BR>
+<DIV ALIGN="CENTER"><A NAME="eq.oned"></A><!-- MATH
+ \begin{eqnarray}
+-u''(x) = f \qquad 0 < x < 1,
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE">
+<TD WIDTH=10 ALIGN="LEFT">
+(114)</TD>
+<TD NOWRAP ALIGN="RIGHT"><IMG
+ WIDTH="222" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1609.png"
+ ALT="$\displaystyle -u''(x) = f \qquad 0 &lt; x &lt; 1,$"></TD>
+<TD>&nbsp;</TD>
+<TD>&nbsp;</TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+with boundary conditions <!-- MATH
+ $u(0)=u(1) = 0$
+ -->
+<IMG
+ WIDTH="133" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1610.png"
+ ALT="$ u(0)=u(1) = 0$">. Let <!-- MATH
+ $S_h = {\cal P}^9$
+ -->
+<IMG
+ WIDTH="72" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1611.png"
+ ALT="$ S_h = {\cal P}^9$">, where
+the basis set is <!-- MATH
+ $\phi_i = x^i(1-x)$
+ -->
+<IMG
+ WIDTH="120" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1612.png"
+ ALT="$ \phi_i = x^i(1-x)$">, <!-- MATH
+ $i = 0,1,\ldots 9$
+ -->
+<IMG
+ WIDTH="106" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1613.png"
+ ALT="$ i = 0,1,\ldots 9$">. Prove that the
+underlying linear algebraic problem has a stiffness matrix that is
+symmetric and nonsingular.
+
+<P>
+<IMG
+ WIDTH="19" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img68.png"
+ ALT="$\Box$">
+
+<P>
+<B>Model Problem with Neumann Boundary Conditions</B>
+
+<P>
+<BR>
+<DIV ALIGN="CENTER"><A NAME="eq.nm"></A><!-- MATH
+ \begin{eqnarray}
+-\mbox{div} \, (a \mbox{grad} \, u) &=& f \qquad \mbox{ on } \Omega \\
+a \frac{\partial u}{\partial n} &=& 0 \qquad \mbox{ on } \partial \Omega
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE">
+<TD WIDTH=10 ALIGN="LEFT">
+(115)</TD>
+<TD NOWRAP ALIGN="RIGHT"><IMG
+ WIDTH="20" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img450.png"
+ ALT="$\displaystyle -$">div<IMG
+ WIDTH="25" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1614.png"
+ ALT="$\displaystyle   (a$">&nbsp; &nbsp;grad<IMG
+ WIDTH="26" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1615.png"
+ ALT="$\displaystyle   u)$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="19" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img305.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP><IMG
+ WIDTH="16" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1616.png"
+ ALT="$\displaystyle f$">&nbsp; &nbsp; on <IMG
+ WIDTH="18" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1617.png"
+ ALT="$\displaystyle \Omega$"></TD></TR>
+<TR VALIGN="MIDDLE">
+<TD WIDTH=10 ALIGN="LEFT">
+(116)</TD>
+<TD NOWRAP ALIGN="RIGHT"><IMG
+ WIDTH="40" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1618.png"
+ ALT="$\displaystyle a \frac{\partial u}{\partial n}$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="19" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img305.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP>0&nbsp; &nbsp; on <IMG
+ WIDTH="29" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1619.png"
+ ALT="$\displaystyle \partial \Omega$"></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+If <IMG
+ WIDTH="68" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1620.png"
+ ALT="$ u \in H^m$"> then the partial derivatives up to order <IMG
+ WIDTH="54" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1621.png"
+ ALT="$ m-1$"> are
+defined on <!-- MATH
+ $\partial \Omega$
+ -->
+<IMG
+ WIDTH="29" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1239.png"
+ ALT="$\partial \Omega$"> and are <IMG
+ WIDTH="25" HEIGHT="20" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1537.png"
+ ALT="$L^2$"> functions there. However,
+partials of order <IMG
+ WIDTH="21" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1330.png"
+ ALT="$m$"> cannot be sensibly defined on <!-- MATH
+ $\partial \Omega$
+ -->
+<IMG
+ WIDTH="29" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1239.png"
+ ALT="$\partial \Omega$">.
+So to define a space of functions that is <IMG
+ WIDTH="29" HEIGHT="19" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1622.png"
+ ALT="$ H^1$"> such that <!-- MATH
+ $a
+\partial/\partial n$
+ -->
+<IMG
+ WIDTH="57" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1623.png"
+ ALT="$ a
+\partial/\partial n$"> of these functions are zero on the boundary is
+nonsensical. 
+
+<P>
+Instead, let <IMG
+ WIDTH="62" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1624.png"
+ ALT="$ v \in H^1$">.We show that this is a good function space for
+the trial functions:
+<!-- MATH
+ \begin{displaymath}
+-\int_\Omega \mbox{div} \cdot (a \mbox{grad} \, u) v = \int_\Omega
+ a \mbox{grad} \, u \cdot \mbox{grad} \, v - \int_{\partial \Omega} (a
+\mbox{grad} \, u ) \cdot {\hat n} v = \int_\Omega f v
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="44" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1625.png"
+ ALT="$\displaystyle -\int_\Omega$">&nbsp; &nbsp;div<IMG
+ WIDTH="27" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1556.png"
+ ALT="$\displaystyle \cdot (a$">&nbsp; &nbsp;grad<IMG
+ WIDTH="95" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1626.png"
+ ALT="$\displaystyle   u) v = \int_\Omega
+a$">&nbsp; &nbsp;grad<IMG
+ WIDTH="24" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1560.png"
+ ALT="$\displaystyle   u \cdot$">&nbsp; &nbsp;grad<IMG
+ WIDTH="87" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1627.png"
+ ALT="$\displaystyle   v - \int_{\partial \Omega} (a$">&nbsp; &nbsp;grad<IMG
+ WIDTH="131" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1628.png"
+ ALT="$\displaystyle   u ) \cdot {\hat n} v = \int_\Omega f v
+$">
+</DIV><P></P>
+which is
+<!-- MATH
+ \begin{displaymath}
+\int_\Omega
+ a \mbox{grad} \, u \cdot \mbox{grad} \, v - \int_{\partial \Omega} a
+\frac{\partial u}{\partial n}  = \int_\Omega f v.
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="39" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1629.png"
+ ALT="$\displaystyle \int_\Omega
+a$">&nbsp; &nbsp;grad<IMG
+ WIDTH="24" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1560.png"
+ ALT="$\displaystyle   u \cdot$">&nbsp; &nbsp;grad<IMG
+ WIDTH="185" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1630.png"
+ ALT="$\displaystyle   v - \int_{\partial \Omega} a
+\frac{\partial u}{\partial n} = \int_\Omega f v.
+$">
+</DIV><P></P>
+If <IMG
+ WIDTH="15" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img801.png"
+ ALT="$u$"> solves (<A HREF="node31.html#eq.nm">116</A>), then the second term on the left hand side
+is zero. Hence, the <B>WF</B> of the problem is
+<!-- MATH
+ \begin{displaymath}
+\int_\Omega
+ a \mbox{grad} \, u \cdot \mbox{grad} \, v   = \int_\Omega f v, \qquad
+\forall v \in H^1.
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="39" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1629.png"
+ ALT="$\displaystyle \int_\Omega
+a$">&nbsp; &nbsp;grad<IMG
+ WIDTH="24" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1560.png"
+ ALT="$\displaystyle   u \cdot$">&nbsp; &nbsp;grad<IMG
+ WIDTH="207" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1631.png"
+ ALT="$\displaystyle   v = \int_\Omega f v, \qquad
+\forall v \in H^1.
+$">
+</DIV><P></P>
+
+<P>
+<B>Remark</B>: we say that <!-- MATH
+ $a \frac{\partial u}{\partial n} = 0$
+ -->
+<IMG
+ WIDTH="69" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1632.png"
+ ALT="$ a \frac{\partial u}{\partial n} = 0$"> is a
+<EM>natural boundary condition</EM>, whereas <IMG
+ WIDTH="50" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1479.png"
+ ALT="$u=0$"> is an <EM>essential boundary condition</EM>.
+
+<P>
+<U>Exercise</U> Set up the <B>WF</B> problem and its Galerkin
+approximation for
+<BR>
+<DIV ALIGN="CENTER">
+<!-- MATH
+ \begin{eqnarray}
+-u''(x) + a u'(x) + b u(x) &=& f \qquad 0 < x < 1, \nonumber \\
+u'(x) &=& c_0 \qquad x=0 \nonumber \\
+u'(x) &=& c_1 \qquad x=1 \nonumber \\
+\end{eqnarray}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE">
+<TD WIDTH=10 ALIGN="LEFT">
+&nbsp;</TD>
+<TD NOWRAP ALIGN="RIGHT"><IMG
+ WIDTH="203" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1633.png"
+ ALT="$\displaystyle -u''(x) + a u'(x) + b u(x)$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="19" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img305.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP><IMG
+ WIDTH="138" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1634.png"
+ ALT="$\displaystyle f \qquad 0 &lt; x &lt; 1,$"></TD></TR>
+<TR VALIGN="MIDDLE">
+<TD WIDTH=10 ALIGN="LEFT">
+&nbsp;</TD>
+<TD NOWRAP ALIGN="RIGHT"><IMG
+ WIDTH="45" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1635.png"
+ ALT="$\displaystyle u'(x)$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="19" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img305.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP><IMG
+ WIDTH="103" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1636.png"
+ ALT="$\displaystyle c_0 \qquad x=0$"></TD></TR>
+<TR VALIGN="MIDDLE">
+<TD WIDTH=10 ALIGN="LEFT">
+&nbsp;</TD>
+<TD NOWRAP ALIGN="RIGHT"><IMG
+ WIDTH="45" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1635.png"
+ ALT="$\displaystyle u'(x)$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="19" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img305.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP><IMG
+ WIDTH="103" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1637.png"
+ ALT="$\displaystyle c_1 \qquad x=1$"></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+Let <!-- MATH
+ $S_h \subset H^1$
+ -->
+<IMG
+ WIDTH="75" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1638.png"
+ ALT="$ S_h \subset H^1$"> be the set of <IMG
+ WIDTH="22" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img173.png"
+ ALT="$N$"> hat piece-wise linear functions
+defined on the distinct nodes <IMG
+ WIDTH="21" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1221.png"
+ ALT="$x_i$">, <!-- MATH
+ $i=1,2,\ldots N$
+ -->
+<IMG
+ WIDTH="114" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1639.png"
+ ALT="$ i=1,2,\ldots N$"> defined on the
+interval <!-- MATH
+ $0 \leq x \leq 1$
+ -->
+<IMG
+ WIDTH="85" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1640.png"
+ ALT="$ 0 \leq x \leq 1$">. Note: you should get that <IMG
+ WIDTH="20" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1431.png"
+ ALT="$c_1$"> and <IMG
+ WIDTH="20" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1432.png"
+ ALT="$c_2$">
+make contributions to the load vector.
+
+<P>
+<IMG
+ WIDTH="19" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img68.png"
+ ALT="$\Box$">
+
+<P>
+<B>An Error Estimate</B>: for the problem posed in (<A HREF="node31.html#eq.oned">114</A>): take
+<!-- MATH
+ $S_h \subset H^1_0$
+ -->
+<IMG
+ WIDTH="75" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1641.png"
+ ALT="$ S_h \subset H^1_0$">, then
+<!-- MATH
+ \begin{displaymath}
+b(u_h,v) = (f,v) \qquad \forall v \, \in S_h.
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="242" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1642.png"
+ ALT="$\displaystyle b(u_h,v) = (f,v) \qquad \forall v   \in S_h.
+$">
+</DIV><P></P>
+and
+<!-- MATH
+ \begin{displaymath}
+b(u,v) = (f,v) \qquad \forall v \, \in S_h.
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="233" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1643.png"
+ ALT="$\displaystyle b(u,v) = (f,v) \qquad \forall v   \in S_h.
+$">
+</DIV><P></P>
+where 
+<!-- MATH
+ \begin{displaymath}
+u_h = \sum_{i=1}^{N} \alpha_i \phi_i
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="114" HEIGHT="77" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1644.png"
+ ALT="$\displaystyle u_h = \sum_{i=1}^{N} \alpha_i \phi_i
+$">
+</DIV><P></P>
+where the set <!-- MATH
+ $\{\phi_i \}_{i=1}^N$
+ -->
+<IMG
+ WIDTH="63" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1645.png"
+ ALT="$ \{\phi_i \}_{i=1}^N$"> span <IMG
+ WIDTH="25" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1584.png"
+ ALT="$ S_h$">. Then
+<!-- MATH
+ \begin{displaymath}
+b(u-u_h,v) = 0 \qquad \forall v \, \in S_h.
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="242" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1646.png"
+ ALT="$\displaystyle b(u-u_h,v) = 0 \qquad \forall v   \in S_h.
+$">
+</DIV><P></P>
+
+<P>
+<U>Theorem</U> For any <IMG
+ WIDTH="58" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1647.png"
+ ALT="$ v \in S_h$">, as above,
+<!-- MATH
+ \begin{displaymath}
+||(u-u_h)'|| \leq ||(u-v)'||.
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="213" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1648.png"
+ ALT="$\displaystyle \vert\vert(u-u_h)'\vert\vert \leq \vert\vert(u-v)'\vert\vert.
+$">
+</DIV><P></P>
+<U>Proof</U>: Let <!-- MATH
+ $v,u_h \in S_h$
+ -->
+<IMG
+ WIDTH="85" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1649.png"
+ ALT="$ v,u_h \in S_h$">, and <IMG
+ WIDTH="96" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1650.png"
+ ALT="$ w=u_h-v$">. Then
+<BR>
+<DIV ALIGN="CENTER">
+<!-- MATH
+ \begin{eqnarray*}
+|| (u - u_h)'||^2 &=& b(u-u_h,u-u_h) + b(u-u_h,w) \\
+&=& b(u-u_h,u-u_h+w) = b(u-u_h,u-v) \leq || (u-u_h)' || ||(u-v)'||
+\end{eqnarray*}
+ -->
+<TABLE CELLPADDING="0" ALIGN="CENTER" WIDTH="100%">
+<TR VALIGN="MIDDLE">
+<TD WIDTH=10 ALIGN="LEFT">
+&nbsp;</TD>
+<TD NOWRAP ALIGN="RIGHT"><IMG
+ WIDTH="106" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1651.png"
+ ALT="$\displaystyle \vert\vert (u - u_h)'\vert\vert^2$"></TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="19" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img305.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP><IMG
+ WIDTH="263" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1652.png"
+ ALT="$\displaystyle b(u-u_h,u-u_h) + b(u-u_h,w)$"></TD></TR>
+<TR VALIGN="MIDDLE">
+<TD WIDTH=10 ALIGN="LEFT">
+&nbsp;</TD>
+<TD NOWRAP ALIGN="RIGHT">&nbsp;</TD>
+<TD WIDTH="10" ALIGN="CENTER" NOWRAP><IMG
+ WIDTH="19" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img305.png"
+ ALT="$\displaystyle =$"></TD>
+<TD ALIGN="LEFT" NOWRAP><IMG
+ WIDTH="535" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1653.png"
+ ALT="$\displaystyle b(u-u_h,u-u_h+w) = b(u-u_h,u-v) \leq \vert\vert (u-u_h)' \vert\vert \vert\vert(u-v)'\vert\vert$"></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+by Cauchy Schwarz.
+<IMG
+ WIDTH="19" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img68.png"
+ ALT="$\Box$">
+
+<P>
+Furthermore, if <IMG
+ WIDTH="21" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1654.png"
+ ALT="$\phi_i$"> are piecelinear hat functions,
+<!-- MATH
+ \begin{displaymath}
+|u - u_h| \leq \frac{h^2}{8} \max_{y \in \Omega} | u''(y)|
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="211" HEIGHT="64" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1655.png"
+ ALT="$\displaystyle \vert u - u_h\vert \leq \frac{h^2}{8} \max_{y \in \Omega} \vert u''(y)\vert
+$">
+</DIV><P></P>
+where <IMG
+ WIDTH="16" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img169.png"
+ ALT="$h$"> is the largest distance between the nodes. This is the same
+estimate you would get for the finite difference approximation of the
+equation using center difference approximation for the second
+derivative. 
+
+<P>
+<IMG
+ WIDTH="19" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img68.png"
+ ALT="$\Box$">
+
+<P>
+<U>Worked Two-Dimensional Example Calculation</U>
+<A NAME="wrkd"></A>Here we will work through a two-dimensional calculation. We will assume that 
+you will be doing all of the work. We'll provide you with some answers for 
+what you should get along the way. 
+
+<P>
+We'll solve
+<P></P>
+<DIV ALIGN="CENTER"><TABLE CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD WIDTH="10" ALIGN="LEFT">
+&nbsp;&nbsp;&nbsp;</TD>
+<TD NOWRAP ALIGN="CENTER"><IMG
+ WIDTH="236" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1656.png"
+ ALT="$\displaystyle \nabla^2 u = f(x,y)\qquad (x,y) \in \Omega$"></TD></TR>
+<TR VALIGN="MIDDLE">
+<TD WIDTH="10" ALIGN="LEFT">
+&nbsp;&nbsp;&nbsp;</TD>
+<TD NOWRAP ALIGN="CENTER"><IMG
+ WIDTH="275" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1657.png"
+ ALT="$\displaystyle u(x,y)=\alpha(x,y) \qquad (x,y)\in\partial\Omega_1$"></TD></TR>
+<TR VALIGN="MIDDLE">
+<TD WIDTH="10" ALIGN="LEFT">
+&nbsp;&nbsp;&nbsp;</TD>
+<TD NOWRAP ALIGN="CENTER"><IMG
+ WIDTH="290" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1658.png"
+ ALT="$\displaystyle \frac{\partial u}{\partial n(x,y)} = \beta(x,y) \qquad (x,y)\in\partial\Omega_2$"></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+See Figure <A HREF="node31.html#gal1">18</A>.
+
+<DIV ALIGN="CENTER"><A NAME="gal1"></A><A NAME="3500"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 18:</STRONG>
+(a) Domain for worked example; (b) node and element assignment.</CAPTION>
+<TR><TD>
+<DIV ALIGN="CENTER"><IMG
+ WIDTH="303" HEIGHT="243" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1659.png"
+ ALT="\includegraphics[width=2.65in]{galerkin2.eps}">
+<IMG
+ WIDTH="304" HEIGHT="259" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1660.png"
+ ALT="\includegraphics[width=2.65in]{galerkin1.eps}">
+</DIV></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+We will assume in this example that <IMG
+ WIDTH="50" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1301.png"
+ ALT="$f=0$">, <IMG
+ WIDTH="51" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1661.png"
+ ALT="$\alpha = 0$">, and
+<!-- MATH
+ $\beta(\theta) = \sin 2 \theta$
+ -->
+<IMG
+ WIDTH="110" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1662.png"
+ ALT="$ \beta(\theta) = \sin 2 \theta$">. We will take the inner radius to be
+<IMG
+ WIDTH="48" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1663.png"
+ ALT="$ r=1$"> and the outer one to be <IMG
+ WIDTH="48" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1664.png"
+ ALT="$ r=2$">. Here <!-- MATH
+ $x=r \cos \theta$
+ -->
+<IMG
+ WIDTH="90" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1665.png"
+ ALT="$ x=r \cos \theta$">, and <!-- MATH
+ $y= r \sin
+\theta$
+ -->
+<IMG
+ WIDTH="87" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1666.png"
+ ALT="$ y= r \sin
+\theta$">. The Laplacian in polar coordinates, applied to some function
+<IMG
+ WIDTH="19" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img603.png"
+ ALT="$w$">,  reads
+<!-- MATH
+ \begin{displaymath}
+\frac{1}{r} \frac{\partial}{\partial r} \left( r \frac{\partial
+w}{\partial r} \right) + \frac{1}{r^2} \frac{\partial^2 w}{\partial
+\theta^2}.
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="195" HEIGHT="64" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1667.png"
+ ALT="$\displaystyle \frac{1}{r} \frac{\partial}{\partial r} \left( r \frac{\partial
+w}{\partial r} \right) + \frac{1}{r^2} \frac{\partial^2 w}{\partial
+\theta^2}.
+$">
+</DIV><P></P>
+
+<P>
+We will tile  the domain
+with 8 triangular elements. Each node point in the figure is
+numbered.
+
+<P>
+To label node points we will use a local and a global scheme.
+A single index will denote a node in the global scheme as
+given in the figure. A double index will denote the local
+scheme. In this local scheme the node points are numbered <IMG
+ WIDTH="24" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1668.png"
+ ALT="$ k1$">, <IMG
+ WIDTH="24" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1669.png"
+ ALT="$ k2$">, <IMG
+ WIDTH="24" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1670.png"
+ ALT="$ k3$">
+going in counterclockwise direction where <IMG
+ WIDTH="15" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img28.png"
+ ALT="$k$"> is the element number. 
+For example, in element
+V the local nodes 51, 52, 53 correspond to the global nodes 2, 7, 
+8, respectively.    
+We will use piecewise bilinear elements.
+hence our approximation will have <IMG
+ WIDTH="27" HEIGHT="20" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1671.png"
+ ALT="$ C^0$"> global
+continuity.
+
+<P>
+<U>Construction of the elements</U> 
+Let
+<P></P>
+<DIV ALIGN="CENTER"><TABLE CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD WIDTH="10" ALIGN="LEFT">
+&nbsp;&nbsp;&nbsp;</TD>
+<TD NOWRAP ALIGN="CENTER"><IMG
+ WIDTH="215" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1672.png"
+ ALT="$\displaystyle \phi_{ki}(x,y)= \gamma_1^i + \gamma_2^i x + \gamma_3^i y$"></TD></TR>
+<TR VALIGN="MIDDLE">
+<TD WIDTH="10" ALIGN="LEFT">
+&nbsp;&nbsp;&nbsp;</TD>
+<TD NOWRAP ALIGN="CENTER"><IMG
+ WIDTH="357" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1673.png"
+ ALT="$\displaystyle \phi_{ki}(x_{ki},y_{ki})=1\qquad \phi_{ki}(x_{kj},y_{kj})=0\quad i\neq j$"></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+Take <IMG
+ WIDTH="46" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1212.png"
+ ALT="$i=1$">
+<P></P>
+<DIV ALIGN="CENTER"><!-- MATH
+ \begin{equation*}
+\begin{split}
+\phi_{k1}(x_1,y_1)&=\gamma_1^1+\gamma_2^1x_1+\gamma_3^1y_1 = 1\\
+\phi_{k1}(x_2,y_2)&=\gamma_1^1+\gamma_2^1x_2+\gamma_3^1y_2 = 0\\
+\phi_{k1}(x_3,y_3)&=\gamma_1^1+\gamma_2^1x_3+\gamma_3^1y_3 = 0\\
+\end{split}
+\end{equation*}
+ -->
+<TABLE CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD WIDTH="10" ALIGN="LEFT">
+&nbsp;&nbsp;&nbsp;</TD>
+<TD NOWRAP ALIGN="CENTER"><IMG
+ WIDTH="278" HEIGHT="86" BORDER="0"
+ SRC="img1674.png"
+ ALT="\begin{displaymath}\begin{split}\phi_{k1}(x_1,y_1)&amp;=\gamma_1^1+\gamma_2^1x_1+\ga...
+...,y_3)&amp;=\gamma_1^1+\gamma_2^1x_3+\gamma_3^1y_3 = 0 \end{split}\end{displaymath}"></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+Solving gives
+<P></P>
+<DIV ALIGN="CENTER"><!-- MATH
+ \begin{equation*}
+\begin{split}
+\gamma_1^1 &= \frac{x_2y_3-x_3y_2}{2A}\\
+\gamma_1^2 &= \frac{y_2-y_3}{2A}\\
+\gamma_1^3 &= \frac{x_3-x_2}{2A}\\
+\end{split}
+\end{equation*}
+ -->
+<TABLE CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD WIDTH="10" ALIGN="LEFT">
+&nbsp;&nbsp;&nbsp;</TD>
+<TD NOWRAP ALIGN="CENTER"><IMG
+ WIDTH="138" HEIGHT="131" BORDER="0"
+ SRC="img1675.png"
+ ALT="\begin{displaymath}\begin{split}\gamma_1^1 &amp;= \frac{x_2y_3-x_3y_2}{2A} \gamma_...
+...c{y_2-y_3}{2A} \gamma_1^3 &amp;= \frac{x_3-x_2}{2A} \end{split}\end{displaymath}"></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+where
+<!-- MATH
+ \begin{displaymath}
+A=\frac{1}{2}
+\det
+\left|
+\begin{array}{ccc}
+1 & 1 & 1 \\
+x_1 & x_2 & x_3 \\
+y_1 & y_2 & y_3 \\
+\end{array}
+\right|
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="197" HEIGHT="86" BORDER="0"
+ SRC="img1676.png"
+ ALT="\begin{displaymath}
+A=\frac{1}{2}
+\det
+\left\vert
+\begin{array}{ccc}
+1 &amp; 1 &amp; 1 \...
+..._1 &amp; x_2 &amp; x_3 \\
+y_1 &amp; y_2 &amp; y_3 \\
+\end{array}\right\vert
+\end{displaymath}">
+</DIV><P></P>
+i.e. the area of the triangle.
+
+<P>
+The other two basis functions that are nonzero in the <IMG
+ WIDTH="15" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img28.png"
+ ALT="$k$">-th element
+are
+<!-- MATH
+ \begin{displaymath}
+\phi_{ki}(x,y)=\frac{1}{2A}\big[
+(x_{k(i+1)}y_{k(i+2)}-x_{k(i+2)}y_{k(i+1)}+(y_{k(i+1)}-y_{k(i+2)})x
++ (x_{k(i+2)}-x_{k(i+1)})y
+  \big] 
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="711" HEIGHT="59" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1677.png"
+ ALT="$\displaystyle \phi_{ki}(x,y)=\frac{1}{2A}\big[
+(x_{k(i+1)}y_{k(i+2)}-x_{k(i+2)}y_{k(i+1)}+(y_{k(i+1)}-y_{k(i+2)})x
++ (x_{k(i+2)}-x_{k(i+1)})y
+\big] $">
+</DIV><P></P>
+
+<P>
+where <IMG
+ WIDTH="63" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1678.png"
+ ALT="$ i=2,3$"> and the indicial operations are taken <IMG
+ WIDTH="69" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1679.png"
+ ALT="$ \mod 3$"> with 
+counterclockwise local
+numbering assumed.  
+
+<P>
+We want an approximation of the solution in the form
+<P></P>
+<DIV ALIGN="CENTER"><A NAME="eq1"></A><!-- MATH
+ \begin{equation}
+v(x,y)=\sum_{j=1}^{N} v_j \phi_j(x,y)
+\end{equation}
+ -->
+<TABLE CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD WIDTH="10" ALIGN="LEFT">
+(117)</TD>
+<TD NOWRAP ALIGN="CENTER"><IMG
+ WIDTH="191" HEIGHT="77" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1680.png"
+ ALT="$\displaystyle v(x,y)=\sum_{j=1}^{N} v_j \phi_j(x,y)$"></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+where <IMG
+ WIDTH="22" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img173.png"
+ ALT="$N$"> is the number of node points. Again we multiply the
+given differential equation by <IMG
+ WIDTH="21" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1654.png"
+ ALT="$\phi_i$"> and integrate. This way we
+get
+<P></P>
+<DIV ALIGN="CENTER"><A NAME="eq2"></A><!-- MATH
+ \begin{equation}
+\int_{\Omega}\nabla^2 v \phi_i(x,y)\,\mathrm{d}x \,\mathrm{d}y
+= \int_{\Omega} f\phi_i(x,y) \,\mathrm{d}x \,\mathrm{d}y 
+\end{equation}
+ -->
+<TABLE CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD WIDTH="10" ALIGN="LEFT">
+(118)</TD>
+<TD NOWRAP ALIGN="CENTER"><IMG
+ WIDTH="338" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1681.png"
+ ALT="$\displaystyle \int_{\Omega}\nabla^2 v \phi_i(x,y) \mathrm{d}x  \mathrm{d}y = \int_{\Omega} f\phi_i(x,y)  \mathrm{d}x  \mathrm{d}y$"></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+Integration by parts produces
+<P></P>
+<DIV ALIGN="CENTER"><A NAME="eq3"></A><!-- MATH
+ \begin{equation}
+\int_{\Omega}\nabla^2 v \phi_i(x,y)\,\mathrm{d}x \,\mathrm{d}y
+= \int_{\partial\Omega} (\nabla v\cdot \hat{n})\,\mathrm{d}s 
+- \int_{\Omega}\nabla v \nabla \phi_i \,\mathrm{d}x \,\mathrm{d}y  
+\end{equation}
+ -->
+<TABLE CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD WIDTH="10" ALIGN="LEFT">
+(119)</TD>
+<TD NOWRAP ALIGN="CENTER"><IMG
+ WIDTH="465" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1682.png"
+ ALT="$\displaystyle \int_{\Omega}\nabla^2 v \phi_i(x,y) \mathrm{d}x  \mathrm{d}y = ...
+... \mathrm{d}s - \int_{\Omega}\nabla v \nabla \phi_i  \mathrm{d}x  \mathrm{d}y$"></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+where <IMG
+ WIDTH="16" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1683.png"
+ ALT="$ \hat{n}$"> is the outward unit normal on each segment of
+<!-- MATH
+ $\partial \Omega$
+ -->
+<IMG
+ WIDTH="29" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1239.png"
+ ALT="$\partial \Omega$"> and <!-- MATH
+ $\hat{n}\cdot\nabla v=\frac{\partial v}{\partial n}$
+ -->
+<IMG
+ WIDTH="100" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1684.png"
+ ALT="$ \hat{n}\cdot\nabla v=\frac{\partial v}{\partial n}$">.
+
+<P>
+Using (<A HREF="node31.html#eq1">118</A>) and (<A HREF="node31.html#eq3">120</A>) we rewrite (<A HREF="node31.html#eq2">119</A>) as follows
+<P></P>
+<DIV ALIGN="CENTER"><A NAME="eq4"></A><!-- MATH
+ \begin{equation}
+\int_{\partial\Omega}\frac{\partial v}{\partial n} \phi_i\,\mathrm{d}s
+- \sum_{j=1}^{N} v_j \int_{\Omega} \nabla \phi_j \cdot \nabla \phi_i 
+\,\mathrm{d}x \,\mathrm{d}y
+= \int_{\Omega} f\phi_i\,\mathrm{d}x \,\mathrm{d}y
+\end{equation}
+ -->
+<TABLE CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD WIDTH="10" ALIGN="LEFT">
+(120)</TD>
+<TD NOWRAP ALIGN="CENTER"><IMG
+ WIDTH="452" HEIGHT="77" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1685.png"
+ ALT="$\displaystyle \int_{\partial\Omega}\frac{\partial v}{\partial n} \phi_i \mathr...
+...  \mathrm{d}x  \mathrm{d}y = \int_{\Omega} f\phi_i \mathrm{d}x  \mathrm{d}y$"></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+since <IMG
+ WIDTH="50" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1301.png"
+ ALT="$f=0$">, the RHS vanishes.
+The
+<!-- MATH
+ \begin{displaymath}
+\int_{\Omega} \nabla \phi_j \cdot \nabla \phi_i
+  \,\mathrm{d}x \,\mathrm{d}y 
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="157" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1686.png"
+ ALT="$\displaystyle \int_{\Omega} \nabla \phi_j \cdot \nabla \phi_i
+ \mathrm{d}x  \mathrm{d}y $">
+</DIV><P></P>
+terms give entries into what is commonly called the stiffness matrix <IMG
+ WIDTH="25" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img146.png"
+ ALT="$M$">, a 
+<IMG
+ WIDTH="62" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1180.png"
+ ALT="$N\times N$"> square matrix. The quantities
+<!-- MATH
+ \begin{displaymath}
+\int_{\partial\Omega}\frac{\partial v}{\partial n} \phi_i\,\mathrm{d}s
+- \int_{\Omega} f\phi_i\,\mathrm{d}x \,\mathrm{d}y
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="225" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1687.png"
+ ALT="$\displaystyle \int_{\partial\Omega}\frac{\partial v}{\partial n} \phi_i \mathrm{d}s
+- \int_{\Omega} f\phi_i \mathrm{d}x  \mathrm{d}y
+$">
+</DIV><P></P>
+are called load vector <IMG
+ WIDTH="19" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img525.png"
+ ALT="$F$">. So if <!-- MATH
+ $V=[v_1,v_2,\ldots,v_N]^T$
+ -->
+<IMG
+ WIDTH="171" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1688.png"
+ ALT="$ V=[v_1,v_2,\ldots,v_N]^T$"> then
+(<A HREF="node31.html#eq4">121</A>) is nothing more than
+<!-- MATH
+ \begin{displaymath}
+MV=F
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="80" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1689.png"
+ ALT="$\displaystyle MV=F$">
+</DIV><P></P>
+We most efficiently compute the stiffness matrix by using the relation
+<!-- MATH
+ \begin{displaymath}
+\int_{\Omega} = \sum \int_{\Omega_k}
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="110" HEIGHT="60" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1690.png"
+ ALT="$\displaystyle \int_{\Omega} = \sum \int_{\Omega_k}$">
+</DIV><P></P>
+where <IMG
+ WIDTH="26" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1691.png"
+ ALT="$ \Omega_k$"> is the domain of each element. The plan is finding
+the contributions for the stiffness matrix from every element and then
+adding up all these contributions.  
+So we need to evaluate
+<!-- MATH
+ \begin{displaymath}
+\int_{\Omega^e} \nabla \phi_l \cdot \nabla \phi_m \,\mathrm{d}x \,\mathrm{d}y
+= \int_{\Omega} \left(
+\frac{\partial\phi_l}{\nabla x}\frac{\partial\phi_m}{\nabla x}
++\frac{\partial\phi_l}{\nabla y}\frac{\partial\phi_m}{\nabla y} 
+  \right)
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="408" HEIGHT="63" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1692.png"
+ ALT="$\displaystyle \int_{\Omega^e} \nabla \phi_l \cdot \nabla \phi_m  \mathrm{d}x \...
+...la x}
++\frac{\partial\phi_l}{\nabla y}\frac{\partial\phi_m}{\nabla y}
+\right)$">
+</DIV><P></P>
+<IMG
+ WIDTH="105" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1693.png"
+ ALT="$ l,m=1,2,3$">. You should be able to show that 
+<P></P>
+<DIV ALIGN="CENTER"><!-- MATH
+ \begin{multline*}
+\int_{\Omega^e} \nabla \phi_l \cdot \nabla \phi_m \,\mathrm{d}x \,\mathrm{d}y
+= \\
+=\frac{1}{4A}\Big[
+(y_{l+1}-y_{l+2})(y_{m+1}-y_{m+2})
++(x_{l+2}-x_{l+1})(x_{m+2}-x_{m+1})
+  \Big]
+\end{multline*}
+ -->
+<IMG
+ WIDTH="523" HEIGHT="100" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1694.png"
+ ALT="\begin{multline*}
+\int_{\Omega^e} \nabla \phi_l \cdot \nabla \phi_m  \mathrm{d}...
+...+2})(y_{m+1}-y_{m+2})
++(x_{l+2}-x_{l+1})(x_{m+2}-x_{m+1})
+\Big]
+\end{multline*}"></DIV>
+<BR CLEAR="ALL">
+<P><P></P>
+The load vector <!-- MATH
+ $\int \partial v/\partial n \,\mathrm{d}s$
+ -->
+<IMG
+ WIDTH="95" HEIGHT="39" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1695.png"
+ ALT="$ \int \partial v/\partial n  \mathrm{d}s$"> can be found 
+as follows: It is easy to see that it vanishes for all interior nodes
+because those <IMG
+ WIDTH="21" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1654.png"
+ ALT="$\phi_i$"> are zero along the boundary <!-- MATH
+ $\partial\Omega$
+ -->
+<IMG
+ WIDTH="29" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1239.png"
+ ALT="$\partial \Omega$">. 
+Let us look at node 2. Assume that <!-- MATH
+ $\partial v/\partial n = 1$
+ -->
+<IMG
+ WIDTH="91" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1696.png"
+ ALT="$ \partial v/\partial n = 1$"> and
+use the fact that <IMG
+ WIDTH="23" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1697.png"
+ ALT="$ \phi_2$"> is linear on <!-- MATH
+ $\partial\Omega$
+ -->
+<IMG
+ WIDTH="29" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1239.png"
+ ALT="$\partial \Omega$">.
+Then
+<P></P>
+<DIV ALIGN="CENTER"><!-- MATH
+ \begin{equation*}
+\begin{split}
+\int \frac{\partial v}{\partial n} \phi_2 \,\mathrm{d}s
+&=\int_{\text{node 1}}^{\text{node 2}} 1\cdot\phi_8\,\mathrm{d}s
++\int_{\text{node 2}}^{\text{node 3}} 1\cdot\phi_8\,\mathrm{d}s \\
+&=\int_0^{l_{1-2}}\frac{s}{l_{1-2}}\,\mathrm{d}s
++\int_0^{l_{2-3}}\frac{s}{l_{2-3}}\,\mathrm{d}s\\
+&=\frac{l_{1-2}}{2}+\frac{l_{2-3}}{2}
+\end{split}
+\end{equation*}
+ -->
+<TABLE CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD WIDTH="10" ALIGN="LEFT">
+&nbsp;&nbsp;&nbsp;</TD>
+<TD NOWRAP ALIGN="CENTER"><IMG
+ WIDTH="388" HEIGHT="153" BORDER="0"
+ SRC="img1698.png"
+ ALT="\begin{displaymath}\begin{split}\int \frac{\partial v}{\partial n} \phi_2  \mat...
+...\mathrm{d}s &amp;=\frac{l_{1-2}}{2}+\frac{l_{2-3}}{2} \end{split}\end{displaymath}"></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+where <IMG
+ WIDTH="32" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1699.png"
+ ALT="$ l_{i-j}$"> denotes the distance from node <IMG
+ WIDTH="11" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1325.png"
+ ALT="$i$"> to node <IMG
+ WIDTH="14" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1266.png"
+ ALT="$ j$">.
+
+<P>
+To solve the given problem, follow these steps:
+<BR>
+<OL>
+<LI>Find the coordinates of all the node points.
+<BR>
+<P>
+<DIV ALIGN="CENTER">
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="CENTER">node number</TD>
+<TD ALIGN="CENTER">coordinates</TD>
+</TR>
+<TR><TD ALIGN="CENTER">1</TD>
+<TD ALIGN="CENTER">(0, 2)</TD>
+</TR>
+<TR><TD ALIGN="CENTER">2</TD>
+<TD ALIGN="CENTER">(1.4142, 1.4142)</TD>
+</TR>
+<TR><TD ALIGN="CENTER">3</TD>
+<TD ALIGN="CENTER">(2, 0)</TD>
+</TR>
+<TR><TD ALIGN="CENTER">4</TD>
+<TD ALIGN="CENTER">(1, 0)</TD>
+</TR>
+<TR><TD ALIGN="CENTER">5</TD>
+<TD ALIGN="CENTER">(0.7071, 0.7071)</TD>
+</TR>
+<TR><TD ALIGN="CENTER">6</TD>
+<TD ALIGN="CENTER">(0, 1)</TD>
+</TR>
+<TR><TD ALIGN="CENTER">7</TD>
+<TD ALIGN="CENTER">(0.75, 1.299)</TD>
+</TR>
+<TR><TD ALIGN="CENTER">8</TD>
+<TD ALIGN="CENTER">(1.299, 0.75)</TD>
+</TR>
+</TABLE>
+</DIV>
+</LI>
+<LI>Make a table assigning to each element its corresponding node
+points in counterclockwise motion.
+<DIV ALIGN="CENTER">
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="CENTER">element number</TD>
+<TD ALIGN="CENTER">nodes</TD>
+</TR>
+<TR><TD ALIGN="CENTER">I</TD>
+<TD ALIGN="CENTER">1,7,2</TD>
+</TR>
+<TR><TD ALIGN="CENTER">II</TD>
+<TD ALIGN="CENTER">1,6,7</TD>
+</TR>
+<TR><TD ALIGN="CENTER">III</TD>
+<TD ALIGN="CENTER">6,5,7</TD>
+</TR>
+<TR><TD ALIGN="CENTER">IV</TD>
+<TD ALIGN="CENTER">2,7,8</TD>
+</TR>
+<TR><TD ALIGN="CENTER">V</TD>
+<TD ALIGN="CENTER">5,8,7</TD>
+</TR>
+<TR><TD ALIGN="CENTER">VI</TD>
+<TD ALIGN="CENTER">3,2,8</TD>
+</TR>
+<TR><TD ALIGN="CENTER">VII</TD>
+<TD ALIGN="CENTER">5,4,8</TD>
+</TR>
+<TR><TD ALIGN="CENTER">VIII</TD>
+<TD ALIGN="CENTER">4,3,8</TD>
+</TR>
+</TABLE>
+</DIV>
+
+<P>
+</LI>
+<LI>Find the local stiffness matrices for each element. Use symmetries
+and a matlab script to make the task less tedious.
+
+<P>
+As all stiffness matrices are symmetric only the upperdiagonal part
+is given.
+Element I Element II
+<BR>
+<P>
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="CENTER">0.4116</TD>
+<TD ALIGN="CENTER">-0.7897</TD>
+<TD ALIGN="CENTER">0.3781</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">2.1224</TD>
+<TD ALIGN="CENTER">-1.3327</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">0.9546</TD>
+</TR>
+</TABLE>
+
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="CENTER">0.4346</TD>
+<TD ALIGN="CENTER">-0.2353</TD>
+<TD ALIGN="CENTER">-0.1993</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">0.7026</TD>
+<TD ALIGN="CENTER">-0.4673</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">0.6667</TD>
+</TR>
+</TABLE>
+<BR>
+<BR>
+<P>
+Element III Element IV
+<BR>
+<P>
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="CENTER">0.4086</TD>
+<TD ALIGN="CENTER">-0.2426</TD>
+<TD ALIGN="CENTER">-0.1659</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">0.7563</TD>
+<TD ALIGN="CENTER">-0.5136</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">0.6796</TD>
+</TR>
+</TABLE>
+
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="CENTER">0.7045</TD>
+<TD ALIGN="CENTER">-0.3523</TD>
+<TD ALIGN="CENTER">-0.3523</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">0.5311</TD>
+<TD ALIGN="CENTER">-0.1789</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">0.5311</TD>
+</TR>
+</TABLE>
+<BR>
+<BR>
+<P>
+Element V Element VI 
+<BR>
+<P>
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="CENTER">0.8646</TD>
+<TD ALIGN="CENTER">-0.4323</TD>
+<TD ALIGN="CENTER">-0.4323</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">0.5051</TD>
+<TD ALIGN="CENTER">-0.0728</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">0.5051</TD>
+</TR>
+</TABLE>
+
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="CENTER">0.4116</TD>
+<TD ALIGN="CENTER">0.3781</TD>
+<TD ALIGN="CENTER">-0.7897</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">0.9546</TD>
+<TD ALIGN="CENTER">-1.3327</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">2.1224</TD>
+</TR>
+</TABLE>
+<BR>
+<BR>
+<P>
+Element VII Element VIII
+<BR>
+<P>
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="CENTER">0.7563</TD>
+<TD ALIGN="CENTER">-0.2426</TD>
+<TD ALIGN="CENTER">-0.5136</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">0.4086</TD>
+<TD ALIGN="CENTER">-0.1659</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">0.6796</TD>
+</TR>
+</TABLE>
+
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="CENTER">0.7026</TD>
+<TD ALIGN="CENTER">-0.2353</TD>
+<TD ALIGN="CENTER">-0.4673</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">0.4346</TD>
+<TD ALIGN="CENTER">-0.1993</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">0.6667</TD>
+</TR>
+</TABLE>
+<BR>
+<BR>
+<P>
+</LI>
+<LI>Add up the element stiffness matrices to obtain the global
+stiffness matrix.
+<BR>
+<BR><TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="CENTER">0.8462</TD>
+<TD ALIGN="CENTER">0.3781</TD>
+<TD ALIGN="CENTER">0</TD>
+<TD ALIGN="CENTER">0</TD>
+<TD ALIGN="CENTER">0</TD>
+<TD ALIGN="CENTER">-0.2353</TD>
+<TD ALIGN="CENTER">0.989</TD>
+<TD ALIGN="CENTER">0</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">2.6137</TD>
+<TD ALIGN="CENTER">0.3781</TD>
+<TD ALIGN="CENTER">0</TD>
+<TD ALIGN="CENTER">0</TD>
+<TD ALIGN="CENTER">0</TD>
+<TD ALIGN="CENTER">-1.685</TD>
+<TD ALIGN="CENTER">-1.685</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">0.8462</TD>
+<TD ALIGN="CENTER">-0.2353</TD>
+<TD ALIGN="CENTER">0</TD>
+<TD ALIGN="CENTER">0</TD>
+<TD ALIGN="CENTER">0</TD>
+<TD ALIGN="CENTER">0.989</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">1.1112</TD>
+<TD ALIGN="CENTER">-0.2426</TD>
+<TD ALIGN="CENTER">0</TD>
+<TD ALIGN="CENTER">0</TD>
+<TD ALIGN="CENTER">-0.6332</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">2.3772</TD>
+<TD ALIGN="CENTER">-0.2426</TD>
+<TD ALIGN="CENTER">-0.9459</TD>
+<TD ALIGN="CENTER">-0.9549</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">1.1112</TD>
+<TD ALIGN="CENTER">-0.6332</TD>
+<TD ALIGN="CENTER">0</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">4.5059</TD>
+<TD ALIGN="CENTER">-0.2517</TD>
+</TR>
+<TR><TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">&nbsp;</TD>
+<TD ALIGN="CENTER">4.5049</TD>
+</TR>
+</TABLE>
+<BR>
+<BR>
+You should do this on your own. Click <a href=../femcirc.m>  here 
+</a> for a possible computer program solution.
+
+
+e) Find the force vector. 
+
+<P>
+The only contribution comes from the second node.
+We will integrate the boundary terms over the arc of the
+circle.  If many points on the arc are used the difference 
+between integration along the arc to integration
+along the triangle edges is small and the integrals are much
+more convenient along the arcs. Let us just consider element
+VI which will give us <IMG
+ WIDTH="43" HEIGHT="37" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1700.png"
+ ALT="$ F_2/2$"> because of symmetry. Using polar
+coordinates we have <!-- MATH
+ $\,\mathrm{d}s = 2\,\mathrm{d}\theta$
+ -->
+<IMG
+ WIDTH="84" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1701.png"
+ ALT="$  \mathrm{d}s = 2 \mathrm{d}\theta$"> and we can interpolate
+<IMG
+ WIDTH="23" HEIGHT="34" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1697.png"
+ ALT="$ \phi_2$"> linearly which will gives us 
+<!-- MATH
+ \begin{displaymath}
+\frac{F_2}{2}=\int_{\text{node 2}}^{\text{node 3}} 1\cdot\phi_2\,\mathrm{d}\theta
+=2\int_0^{\frac{\pi}{4}}
+\left(\frac{\pi}{4}-\theta\right)\sin(2\theta)\,\mathrm{d}
+\theta
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="405" HEIGHT="69" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1702.png"
+ ALT="$\displaystyle \frac{F_2}{2}=\int_{\text{node 2}}^{\text{node 3}} 1\cdot\phi_2 ...
+...rac{\pi}{4}}
+\left(\frac{\pi}{4}-\theta\right)\sin(2\theta) \mathrm{d}
+\theta
+$">
+</DIV><P></P>
+
+<P>
+</LI>
+<LI>Impose the Dirichlet boundary conditons.
+
+<P>
+All nodes except 2, 7, 8 have zero function value. Therefore the
+stiffness matrix reduces to a <IMG
+ WIDTH="47" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1703.png"
+ ALT="$ 3\times3$"> matrix and we end up with 
+the following system of equations: 
+<!-- MATH
+ \begin{displaymath}
+\left(\begin{array}{ccc}
+2.6137 & -1.685 & -1.685\\
+-1.685 & 4.5049 & -0.2517 \\
+-1.685 &-0.2517 & 4.5049 \\
+\end{array}\right)
+\left(\begin{array}{c}
+v_1 \\v_2 \\v_3
+\end{array}\right)
+=
+\left(\begin{array}{c}
+0.5708 \\0 \\0
+\end{array}\right)
+\end{displaymath}
+ -->
+<P></P>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="472" HEIGHT="87" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1704.png"
+ ALT="$\displaystyle \left(\begin{array}{ccc}
+2.6137 &amp; -1.685 &amp; -1.685\\
+-1.685 &amp; 4.5...
+...end{array}\right)
+=
+\left(\begin{array}{c}
+0.5708 \\ 0 \\ 0
+\end{array}\right)
+$">
+</DIV><P></P>
+
+<P>
+</LI>
+<LI>Solve the resulting system of equations.
+
+<P>
+We obtain <!-- MATH
+ $v_1 = 0.4464$
+ -->
+<IMG
+ WIDTH="98" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1705.png"
+ ALT="$ v_1 = 0.4464$">, <!-- MATH
+ $v_2=0.1769$
+ -->
+<IMG
+ WIDTH="98" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1706.png"
+ ALT="$ v_2=0.1769$">, <!-- MATH
+ $v_3=0.1769$
+ -->
+<IMG
+ WIDTH="98" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1707.png"
+ ALT="$ v_3=0.1769$">. 
+
+<P>
+</LI>
+<LI>Compare the results with the exact solution.
+The exact solution is <!-- MATH
+ $u(r,\theta) = 4/17 (r^2 - 1/r^2) \sin 2 \theta$
+ -->
+<IMG
+ WIDTH="256" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1708.png"
+ ALT="$ u(r,\theta) = 4/17 (r^2 - 1/r^2) \sin 2 \theta$">.
+
+<P>
+</LI>
+</OL>
+
+<P>
+Our approximation is, not surprisingly, poor. However, only three
+free nodes were included in the calculation. 
+More elements are needed for a better result.
+<IMG
+ WIDTH="19" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img68.png"
+ ALT="$\Box$">
+
+<P>
+<IMG
+ WIDTH="19" HEIGHT="17" ALIGN="BOTTOM" BORDER="0"
+ SRC="img68.png"
+ ALT="$\Box$">
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html569"
+  HREF="node32.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="file:/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html565"
+  HREF="node21.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="file:/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html561"
+  HREF="node30.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="file:/usr/share/latex2html/icons/prev.png"></A> 
+<A NAME="tex2html567"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="file:/usr/share/latex2html/icons/contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html570"
+  HREF="node32.html">PARTIAL DIFFERENTIAL EQUATIONS (PDE's)</A>
+<B> Up:</B> <A NAME="tex2html566"
+  HREF="node21.html">BOUNDARY VALUE PROBLEMS (BVP)</A>
+<B> Previous:</B> <A NAME="tex2html562"
+  HREF="node30.html">Variational formulation for a</A>
+ &nbsp <B>  <A NAME="tex2html568"
+  HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+Juan Restrepo
+2003-05-02
+</ADDRESS>
+</BODY>
+</HTML>
