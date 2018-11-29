@@ -1,9 +1,9 @@
 syms Vmu Cu Kmu Cv Kmv rq Vmfv Kmfu ;
 
-Ru = (C*beta*(2*sin(C*r) + C*r*cos(C*r)))/(C*r*sin(C*R) + alpha*r*cos(C*R)) ;
+Ru = -Vmu*Cu/((Kmu+Cu)*(1+Cv/Kmv)) ;
 pretty(Ru) ;
 
-Rv = (C*beta*(2*sin(C*r) + C*r*cos(C*r)))/(C*r*sin(C*R) + alpha*r*cos(C*R)) ;
+Rv = -rq*Ru + Vmfv/(1+Cu/Kmfu) ;
 pretty(Rv) ;
 
 RudCu = simplify(diff(Ru,Cu))

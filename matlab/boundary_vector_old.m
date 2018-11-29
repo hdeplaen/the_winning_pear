@@ -1,4 +1,4 @@
-function [B,stiff_bis] = boundary_vector(p,e,variables)
+function [B,stiff_bis] = boundary_vector_old(p,e,variables)
 %BOUNDARY_VECTOR Outputs boundary vector
 %   Henri De Plaen, KU Leuven
 %
@@ -52,17 +52,16 @@ end
 
 end
 
-np = size(p,1) ; 
-ie1 = eneum(:,1) ; 
-ie2 = eneum(:,2) ;
-
-% segments length
-xy = p(ie2,:)-p(ie1,:) ; 
-ee = sqrt(sum(xy.^2,2)) ;  
-gg = ee.*(g(ie1)+g(ie2))/2 ;    
-b = sparse(ie1,1,gg,np,1) + sparse(ie2,1,gg,np,1) ; 
-b = full(b) ;
-
+% np = size(p,1) ; 
+% ie1 = eneum(:,1) ; 
+% ie2 = eneum(:,2) ;
+% 
+% % segments length
+% xy = p(ie2,:)-p(ie1,:) ; 
+% ee = sqrt(sum(xy.^2,2)) ;  
+% gg = ee.*(g(ie1)+g(ie2))/2 ;    
+% b = sparse(ie1,1,gg,np,1) + sparse(ie2,1,gg,np,1) ; 
+% b = full(b) ;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

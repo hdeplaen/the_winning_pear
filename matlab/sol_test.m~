@@ -53,7 +53,7 @@ for it = 1:max_it
     %     Rb = full(Rb) ;
     %     dF = full(dF) ;
     
-    sol = (K-Rb-dF)\(F-dF*sol_buff+B) ;
+    sol = (1e-2*K+Rb-dF)\(F-dF*sol_buff+B) ;
     
     tol = sqrt(mean((sol-sol_buff).^2)) ;
     if abs(tol) < tol_min

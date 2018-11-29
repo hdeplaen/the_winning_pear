@@ -14,8 +14,7 @@ function [B,Kb] = boundary_vector(p,e,variables)
 %% FUNC BOUNDARY
 np = size(p,1) ;
 
-%max_e = max(e(:,5) ;
-max_e = 1 ;
+max_e = max(e(:,5) ;
 e6 = e(e(:,5)==max_e,:) ;
 e1 = e6(:,1) ; 
 e2 = e6(:,2) ;
@@ -44,10 +43,10 @@ end
 function [bu,bv,kbu,kbv] = buv(p,variables)
 %% BOUNDARY VECTOR
 r = p(:,1) ;
-% np = size(p,1) ;
+np = size(p,1) ;
 
 bu = r*-variables.hu*variables.Cuamb ;
-bv = r*-variables.hv*variables.Cvamb ;
+bv = r*variables.hv*variables.Cvamb ;
 
 kbu = variables.hu*r ;
 kbv = variables.hv*r ;

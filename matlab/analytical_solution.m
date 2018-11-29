@@ -21,6 +21,6 @@ syms r ;
 %Rf = f ;
 Rf = (beta*(2*sin(r) + r*cos(r)))/(r*sin(C*R) + alpha*r*cos(R)) ;
 pretty(simplify(subs(d2f)))
-C = solve(subs(d2f)==subs(Rf),C) ;
-
-pretty(simplify(subs(f))) ;
+% C = solve(subs(d2f)==subs(Rf),C) ;
+% 
+% pretty(simplify(subs(f))) ;
