@@ -1,4 +1,4 @@
-function [F,dF] = fun_vector(p,t,sol)
+function [F,dF] = fun_vector(p,t,sol,variables)
 %FUN VECTOR Outputs function vector
 %   Henri De Plaen, KU Leuven
 %
@@ -15,8 +15,8 @@ np = size(p,1) ;
 F = sparse(2*np,1) ;
 dF = sparse(2*np,2*np) ;
 
-[Ru,Rv,RudCu,RudCv,RvdCu,RvdCv] = fun_diff(sol) ;
-[~ , ~ , ~, T] = grad_phi_u(p,t) ;
+[Ru,Rv,RudCu,RudCv,RvdCu,RvdCv] = fun_diff(sol,variables) ;
+[~ , ~ , ~, T] = grad_phi_u(p,t,variables) ;
 
 fu = (Ru(t(:,1))+Ru(t(:,2))+Ru(t(:,3)))/3 ;
 fv = (Rv(t(:,1))+Rv(t(:,2))+Rv(t(:,3)))/3 ;

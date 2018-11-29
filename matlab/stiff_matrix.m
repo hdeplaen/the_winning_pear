@@ -1,4 +1,4 @@
-function [R] = stiff_matrix(p,t,e)
+function [R] = stiff_matrix(p,t,variables)
 %STIFF_MATRIX Outputs stiff matrix
 %   Henri De Plaen, KU Leuven
 %
@@ -12,8 +12,8 @@ function [R] = stiff_matrix(p,t,e)
 
 np = size(p,1) ;
 
-[dphi1u, dphi2u, dphi3u] = grad_phi_u(p,t) ;
-[dphi1v, dphi2v, dphi3v] = grad_phi_v(p,t) ;
+[dphi1u, dphi2u, dphi3u, ~] = grad_phi_u(p,t,variables) ;
+[dphi1v, dphi2v, dphi3v, ~] = grad_phi_v(p,t,variables) ;
 
 % cell-array of gradients
 dphiu = {dphi1u dphi2u dphi3u} ;
