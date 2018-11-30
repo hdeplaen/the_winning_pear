@@ -45,4 +45,3 @@ RvdCv = -(Cu.*variables.Kmv.*variables.Vmu.*variables.rq)./ ...
     ((Cu + variables.Kmu).*(Cv + variables.Kmv).^2) ;
 
 end
-

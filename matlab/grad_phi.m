@@ -6,8 +6,7 @@ function varargout = grad_phi(varargin)
 %         p : Node coordinates
 %         t : Triangle vertices
 %         variables : Problem parameters
-%         refer: 'euclid' or 'radial'
-%         wvar: which variable ('u' or 'v')
+%         refer: 'cartesian' or 'radial'
 %
 %  Output:
 %         dphi1 : gradient of first basis functions
@@ -18,12 +17,11 @@ function varargout = grad_phi(varargin)
 %   Henri De Plaen, KU Leuven
 
 %% PRELIMINARIES
-assert(nargin==5, 'Wrong number of input arguments') ;
+assert(nargin==4, 'Wrong number of input arguments') ;
 p           = varargin{1} ;
 t           = varargin{2} ;
 variables   = varargin{3} ;
 refer       = varargin{4} ;
-wvar        = varargin{5} ;
 
 %% COMPUTE DISTANCES
 r1 = p(t(:,1),1) ;
@@ -45,29 +43,18 @@ r = (r1+r2+r3)/3 ;
 % triangles area
 T = (r21.*z31-z21.*r31)/2 ;
 
-%% SELECT VARIABLE
-switch wvar
-    case 'u'
-        Dr = variables.Dur ;
-        Dz = variables.Duz ;
-    case 'v'
-        Dr = variables.Dvr ;
-        Dz = variables.Dvz ;
-    otherwise ; error('Variable not recongized') ;
-end
-
 %% RADIAL / EUCLID
 switch refer
     case 'radial'
         %(supposedly not correct)
-        dphi1 = .5*[Dr*(-2*z32 + (r32.*z + r2.*z3 - r3.*z2)./r), Dz*r32] ;
-        dphi2 = .5*[Dr*(2*z31 - (r31.*z + r1.*z3 - r3.*z1)./r), Dz*(-r31)] ;
-        dphi3 = .5*[Dr*(-2*z21 + (r21.*z + r1.*z2 - r2.*z1)./r),  Dz*(r21)] ;
+        dphi1 = .5*[(-2*z32 + (r32.*z + r2.*z3 - r3.*z2)./r), r32] ;
+        dphi2 = .5*[(2*z31 - (r31.*z + r1.*z3 - r3.*z1)./r), (-r31)] ;
+        dphi3 = .5*[(-2*z21 + (r21.*z + r1.*z2 - r2.*z1)./r),  (r21)] ;
         
-    case 'euclid'
-        dphi1 = .5*[-Dr*z32, Dz*r32] ;
-        dphi2 = .5*[Dr*z31, -Dz*r31] ;
-        dphi3 = .5*[-z21*Dr, Dz*r21] ;
+    case 'cartesian'
+        dphi1 = .5*[-z32, r32] ;
+        dphi2 = .5*[z31, -r31] ;
+        dphi3 = .5*[-z21, r21] ;
         
     otherwise ; error('Referential not recognized') ;
 end

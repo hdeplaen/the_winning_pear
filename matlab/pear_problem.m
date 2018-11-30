@@ -6,7 +6,7 @@ function varargout = pear_problem(varargin)
 %   hmax: maximum edge length (controls the mesh concentration)
 %   type: 'pear' or 'test'
 %   plot_sol: plot solution (true or false)
-%   refer: 'euclid' or 'radial'
+%   refer: 'cartesian' or 'radial'
 % OUTPUT
 %   sol: solution [Cu; Cv]
 %   err: L2 error in case of the test
@@ -27,12 +27,12 @@ refer       = varargin{4} ;
 % rng(0681349)
 
 % step sizes
-regv_init = 1e+2 ;
+regv_init = 1e+1 ;
 regv = 1e+0 ;
 
 % non-linear slover parameters
 max_it = 1e+4 ;
-tol_min = 1e-7 ;
+tol_min = 1e-10 ;
 
 %% TYPE OF PROBLEM
 variables = generate_variables(type) ;                  % problem variables
@@ -45,25 +45,25 @@ ibcd = union(e_curve(:,1),e_curve(:,2)) ;               % index of boundary elem
 [B,Rb] = boundary_vector(p,e,variables,axis_s,refer) ;  % compute boundary
 
 np = size(p,1) ;                                        % number of points
-sol_buff = abs(.01*randn(2*np,1)) ;                     % generate initial guess
+sol_buff = abs(.1*randn(2*np,1)) ;                     % generate initial guess
 
 %% SOLVE
 %FIRST ITERATION
-[F,dF] = fun_vector(p,t,sol_buff,variables,refer) ;   % compute source terms
-F([ibcd ibcd+np]) = 0 ;                         % no source term on the boundary (F)
-dF([ibcd ibcd+np],[ibcd ibcd+np]) = 0 ;         % no source term on the boundary (dF)
-dF = 1/regv_init*dF ;                           % ajust step size
-sol = (K-Rb-dF)\(F-dF*sol_buff+B) ;             % compute solution
+[F,dF] = fun_vector(p,t,sol_buff,variables,refer) ;     % compute source terms
+F([ibcd ibcd+np]) = 0 ;                                 % no source term on the boundary (F)
+dF([ibcd ibcd+np],[ibcd ibcd+np]) = 0 ;                 % no source term on the boundary (dF)
+dF = 1/regv_init*dF ;                                   % ajust step size
+sol = (K-Rb-dF)\(F-dF*sol_buff+B) ;                     % compute solution
 
 %NEWTON-RAPHSON EXPLICIT SOVER
 h = waitbar(0,'Initializing') ; % creating a waitbar
 
 for it = 1:max_it
-    [F,dF] = fun_vector(p,t,sol_buff,variables,refer) ;   % compute source terms
-    F([ibcd ibcd+np]) = 0 ;                         % no source term on the boundary (F)
-    dF([ibcd ibcd+np],[ibcd ibcd+np]) = 0 ;         % no source term on the boundary (dF)
-    dF = 1/regv*dF ;                                % ajust step size
-    sol = (K-Rb-dF)\(F-dF*sol_buff+B) ;             % compute solution
+    [F,dF] = fun_vector(p,t,sol_buff,variables,refer) ;    % compute source terms
+    F([ibcd ibcd+np]) = 0 ;                                % no source term on the boundary (F)
+    dF([ibcd ibcd+np],[ibcd ibcd+np]) = 0 ;                % no source term on the boundary (dF)
+    dF = 1/regv*dF ;                                       % ajust step size
+    sol = (K-Rb-dF)\(F-dF*sol_buff+B) ;                    % compute solution
     
     % verify tolerance
     tol = sqrt(mean((sol-sol_buff).^2)) ;

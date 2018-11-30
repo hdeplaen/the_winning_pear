@@ -6,7 +6,7 @@ function [F,dF] = fun_vector(p,t,sol,variables,refer)
 %         p : Node coordinates
 %         sol : points at which F(sol) + dF(sol) should be evaluated
 %         variables : problem parameters
-%         refer : 'euclid' or 'radial'
+%         refer : 'cartesian' or 'radial'
 %
 %  Output:
 %       F  : Function vector
@@ -36,7 +36,7 @@ fvdu = (RvdCu(t(:,1))+RvdCu(t(:,2))+RvdCu(t(:,3)))/3 ;
 fvdv = (RvdCv(t(:,1))+RvdCv(t(:,2))+RvdCv(t(:,3)))/3 ;
 
 % area of the triangles
-[~ , ~ , ~, T] = grad_phi(p,t,variables,refer,'u') ;
+[~ , ~ , ~, T] = grad_phi(p,t,variables,refer) ;
 
 % division by the triangles area
 fu = fu.*T/3 ;

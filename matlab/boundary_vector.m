@@ -29,7 +29,7 @@ hp = p(e2,:) - p(e1,:) ;
 h = sqrt(sum(hp.^2,2)) ;                % length of the segments
 
 [bu,bv,kbu,kbv] = buv(p,variables, refer) ;    % estimation of the boundary value at the nodes
-bbu = h.*(bu(e1)+bu(e2))/2 ;            % estimation of the boundary vector values for each segment
+bbu = h.*(bu(e1)+bu(e2))/2 ;                   % estimation of the boundary vector values for each segment
 bbv = h.*(bv(e1)+bv(e2))/2 ;
 kbbu = h.*(kbu(e1)+kbu(e2))/2 ;
 kbbv = h.*(kbv(e1)+kbv(e2))/2 ;
@@ -62,7 +62,7 @@ switch refer
         % boundary terms dependent on Cu and Cv
         kbu = -variables.hu*r ;
         kbv = -variables.hv*r ;    
-    case 'euclid'
+    case 'cartesian'
         np = size(p,1) ;  % number of points
         
         % independent boundary terms
