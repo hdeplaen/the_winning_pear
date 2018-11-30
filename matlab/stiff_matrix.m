@@ -1,24 +1,30 @@
-function [R] = stiff_matrix(p,t,variables)
+function [R] = stiff_matrix(p,t,variables,refer)
 %STIFF_MATRIX Outputs stiff matrix
 %   Henri De Plaen, KU Leuven
 %
 %  Input:
 %         p : Node coordinates
 %         t : Triangle vertices
+%         variables : Problem parameters
+%         refer : 'euclid' or 'radial'
 %
 %  Output:
 %       R  : Stiffness matrix (symmetric positive semidefinite)
 %            sparse np*np
 
-np = size(p,1) ;
+%% PRELIMINARIES
+np = size(p,1) ;                                            % number of nodes in total (boundary and non-boundary)
 
-[dphi1u, dphi2u, dphi3u, ~] = grad_phi_u(p,t,variables) ;
-[dphi1v, dphi2v, dphi3v, ~] = grad_phi_v(p,t,variables) ;
+%% GRADIENTS OF BASIS FUNCTIONS
+[dphi1u, dphi2u, dphi3u, ~] = grad_phi(p,t,variables,refer,'u') ;   % gradients of basis functions of Cu
+[dphi1v, dphi2v, dphi3v, ~] = grad_phi(p,t,variables,refer,'v') ;   % gradients of basis functions of Cv
 
 % cell-array of gradients
 dphiu = {dphi1u dphi2u dphi3u} ;
 dphiv = {dphi1v dphi2v dphi3v} ;
-R = sparse(2*np,2*np) ;
+
+%% CONSTRUCTION OF THE STIFFNESS MATRIX
+R = sparse(2*np,2*np) ; %prealloc
 
 % under-diagonal entries
 for i = 1:3
