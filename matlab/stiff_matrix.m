@@ -17,7 +17,7 @@ np = size(p,1) ; % number of nodes in total (boundary and non-boundary)
 nt = size(t,1) ; % number of triangles
 
 %% GRADIENTS OF BASIS FUNCTIONS
-[dphi1, dphi2, dphi3, ~] = grad_phi(p,t,variables,refer) ;   % gradients of basis functions
+[dphi1, dphi2, dphi3, ~] = grad_phi(p,t,refer) ;   % gradients of basis functions
 
 % cell-array of gradients
 dphi = {dphi1 dphi2 dphi3} ;

@@ -36,7 +36,7 @@ fvdu = (RvdCu(t(:,1))+RvdCu(t(:,2))+RvdCu(t(:,3)))/3 ;
 fvdv = (RvdCv(t(:,1))+RvdCv(t(:,2))+RvdCv(t(:,3)))/3 ;
 
 % area of the triangles
-[~ , ~ , ~, T] = grad_phi(p,t,variables,refer) ;
+[~ , ~ , ~, T] = grad_phi(p,t,refer) ;
 
 % division by the triangles area
 fu = fu.*T/3 ;

@@ -5,7 +5,6 @@ function varargout = grad_phi(varargin)
 %  Input:
 %         p : Node coordinates
 %         t : Triangle vertices
-%         variables : Problem parameters
 %         refer: 'cartesian' or 'radial'
 %
 %  Output:
@@ -17,11 +16,10 @@ function varargout = grad_phi(varargin)
 %   Henri De Plaen, KU Leuven
 
 %% PRELIMINARIES
-assert(nargin==4, 'Wrong number of input arguments') ;
+assert(nargin==3, 'Wrong number of input arguments') ;
 p           = varargin{1} ;
 t           = varargin{2} ;
-variables   = varargin{3} ;
-refer       = varargin{4} ;
+refer       = varargin{3} ;
 
 %% COMPUTE DISTANCES
 r1 = p(t(:,1),1) ;
