@@ -46,8 +46,8 @@ switch refer
     case 'radial'
         %(supposedly not correct)
         dphi1 = .5*[(-2*z32 + (r32.*z + r2.*z3 - r3.*z2)./r), r32] ;
-        dphi2 = .5*[(2*z31 - (r31.*z + r1.*z3 - r3.*z1)./r), (-r31)] ;
-        dphi3 = .5*[(-2*z21 + (r21.*z + r1.*z2 - r2.*z1)./r),  (r21)] ;
+        dphi2 = .5*[(2*z31 - (r31.*z + r1.*z3 - r3.*z1)./r), -r31] ;
+        dphi3 = .5*[(-2*z21 + (r21.*z + r1.*z2 - r2.*z1)./r),  r21] ;
         
     case 'cartesian'
         dphi1 = .5*[-z32, r32] ;

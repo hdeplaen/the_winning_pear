@@ -1,3 +1,5 @@
+clear all ; close all ; clc ;
+
 syms Vmu Cu Kmu Cv Kmv rq Vmfv Kmfu ;
 
 Ru = -Vmu*Cu/((Kmu+Cu)*(1+Cv/Kmv)) ;

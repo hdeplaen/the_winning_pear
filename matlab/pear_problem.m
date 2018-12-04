@@ -27,15 +27,15 @@ refer       = varargin{4} ;
 % rng(0681349)
 
 % step sizes
-regv_init = 1e+1 ;
-regv = 1e+0 ;
+regv_init = 1e-1 ;
+regv = 1e-2 ;
 
 % non-linear slover parameters
 max_it = 1e+4 ;
-tol_min = 1e-10 ;
+tol_min = 1e-7 ;
 
 %% TYPE OF PROBLEM
-variables = generate_variables(type) ;                  % problem variables
+variables = generate_variables('pear') ;                  % problem variables
 [p,e,t,model,axis_s] = generate_mesh(hmax,type,0,0) ;   % mesh parameters
 
 K = stiff_matrix(p,t,variables,refer) ;                 % compute stiff matrix
@@ -83,8 +83,8 @@ delete(h) ;
 
 %% VIEW SOL
 if plot_sol
-    sol_u = sol(1:np) ;
-    sol_v = sol(np+1:end) ;
+    sol_u = sol(1:np)*100 ;
+    sol_v = sol(np+1:end)*100 ;
     
     figure ; hold on ;
     
@@ -92,13 +92,13 @@ if plot_sol
     title('Oxygen concentration') ;
     pdeplot(model,'XYData',sol_u(:)) ;
     xlabel('r') ; ylabel('z') ;
-    colormap('parula') ;
+    %colormap('parula') ;
     
     subplot(1,2,2) ;
     title('Carbon dioxide concentration') ;
     pdeplot(model,'XYData',sol_v(:)) ;
     xlabel('r') ; ylabel('z') ;
-    colormap('parula') ;
+    %colormap('parula') ;
 end
 
 %% RETURN (not ready for the moment)

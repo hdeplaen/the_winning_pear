@@ -40,8 +40,8 @@ R = R + R.' ;
 
 % diagonal entries
 for i = 1:3
-    R = R + sparse(t(:,i),t(:,i),sum(dphi{i}.*dphi{i},2),2*np,2*np) ;
-    R = R + sparse(t(:,i)+np,t(:,i)+np,sum(dphi{i}.*dphi{i},2),2*np,2*np) ;
+    R = R + sparse(t(:,i),t(:,i),sum(Du.*dphi{i}.*dphi{i},2),2*np,2*np) ;
+    R = R + sparse(t(:,i)+np,t(:,i)+np,sum(Dv.*dphi{i}.*dphi{i},2),2*np,2*np) ;
 end
 
 end
