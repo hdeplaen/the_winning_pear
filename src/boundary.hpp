@@ -1,5 +1,5 @@
-#ifndef pear_stiff_hpp
-#define pear_stiff_hpp
+#ifndef pear_boundary_hpp
+#define pear_boundary_hpp
 
 #include <Eigen/Core>
 #include <Eigen/Sparse>
@@ -12,9 +12,8 @@ typedef Eigen::VectorXi VecI;
 typedef Eigen::SparseMatrix<double, Eigen::RowMajor> SpMat;
 
 namespace pear {
-void grad_phi(Vec &xp, Vec &yp, Vec &t, Mat &Dphi1, Mat &Dphi2, Mat &Dphi3,
-              Vec &T);
-SpMat stiff(Vec &xp, Vec &yp, MatI &node, int boundary_vertices);
+void boundary_vector(Vec &xp, Vec &yp, Vec &g1, Vec &g2, Vec &B, Mat &Kb);
+void boundary_func(Vec &xp, Vec &bu, Vec &bv, Vec &kbu, Vec &kbv);
 } // namespace pear
 
 #endif

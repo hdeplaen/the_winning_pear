@@ -6,8 +6,7 @@ function [B,Kb] = boundary_vector(p,e,variables,axis_e,refer)
 %
 %  Input:
 %         p : Node coordinates
-%         e : Edge vector (bound1: index 1-5, bound2: index 6)
-%         t : Triangle vertices
+%         e : Edge vector
 %         axis_e : part of the boundary that corresponds to the axis
 %         refer: 'euclid' or 'radial'
 %

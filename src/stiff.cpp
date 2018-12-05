@@ -7,15 +7,8 @@
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
 
-// TYPE DEFINITIONS
-typedef Eigen::MatrixXd Mat;
-typedef Eigen::VectorXd Vec;
-typedef Eigen::MatrixXi MatI;
-typedef Eigen::VectorXi VecI;
-typedef Eigen::SparseMatrix<double, Eigen::RowMajor> SpMat;
-
 namespace pear {
-void grad_phi(Vec &xp, Vec &yp, Vec &t, Vec &Dphi1, Vec &Dphi2, Vec &Dphi3,
+void grad_phi(Vec &xp, Vec &yp, Vec &t, Mat &Dphi1, Mat &Dphi2, Mat &Dphi3,
               Vec &T) {
   int np = p.rows();
 
@@ -42,14 +35,28 @@ void grad_phi(Vec &xp, Vec &yp, Vec &t, Vec &Dphi1, Vec &Dphi2, Vec &Dphi3,
   Vec r = (r1 + r2 + r3) / 3;
 
   // AREA OF THE TRIANGLES
-  Vec T = (r21 * z31 - z21 * r31) / 2;
+  T = ((r21.array() * z31.array() - z21.array() * r31.array())).vector() / 2;
 
   // GRADIENTS OF THE BASIS FUNCTIONS
-  Vec Dphi = .5 * [ -2 * z32 + (r32 * z + r2 * z3 - r3 * z2) / r, r32 ];
-  Vec Dphi = .5 * [ 2 * z31 - (r31 * z + r1 * z3 - r3 * z1) / r, -r31 ];
-  Vec Dphi = .5 * [ -2 * z21 + (r21 * z + r1 * z2 - r2 * z1) / r, r21 ];
+  Dphi1 << -2 * z32.array() + (r32.array() * z + r2.array() * z3.array() -
+                               r3.array() * z2.array()) /
+                                  r.array(),
+      r32.array();
 
-  return Dphi;
+  Dphi2 << 2 * z31.array() -
+               (r31.array() * z.array() + r1.array() * z3.array() -
+                r3.array() * z1.array()) /
+                   r.array(),
+      -r31.array();
+  Dphi3 << -2 * z21.array() +
+               (r21.array() * z.array() + r1.array() * z2.array() -
+                r2.array() * z1.array()) /
+                   r.array(),
+      r21.array();
+
+  Dphi1 = Dphi1 / 2;
+  Dphi2 = Dphi2 / 2;
+  Dphi3 = Dphi3 / 2;
 }
 
 SpMat stiff(Vec &xp, Vec &yp, MatI &node, int boundary_vertices) {
@@ -63,7 +70,12 @@ SpMat stiff(Vec &xp, Vec &yp, MatI &node, int boundary_vertices) {
   SpMat R(2 * np, 2 * np);
 
   // GRADIENTS OF BASIS FUNCTIONS
-  Mat Dphi = grad_phi(Vec & xp, Vec & yp, Vec & t);
+  Mat Dphi1(np, 2);
+  Mat Dphi2(np, 2);
+  Mat Dphi3(np, 2);
+  Vec T(np);
+
+  grad_phi(Vec & xp, Vec & yp, Vec & t, Dphi1, Dphi2, Dphi3, T);
 
   Du[0] = Dur;
   Du[1] = Duz;
@@ -73,18 +85,27 @@ SpMat stiff(Vec &xp, Vec &yp, MatI &node, int boundary_vertices) {
   // CONSTRUCTION OF THE STIFNESS MATRIX
   for (int idxi = 0; idxi < 3; idxi++) {
     for (int idxj = 0; idxj < idxi; idx2++) {
-      for (int idxv = 0; idxv < nt; idxv++) {
+      for (int idxv = 0; idxv < np; idxv++) {
         R(t1(idxv, idxi), t2(idxv, idxj)) +=
             Du * (Dphi.row(idxi).array() * Dphi.row(idxj).array()).vector();
 
         R(t1(idxv, idxi) + np, t2(idxv, idxj) + np) +=
             Dv * (Dphi.row(idxi).array() * Dphi.row(idxj).array()).vector();
-        ;
       }
     }
   }
 
   R += R.transpose();
+
+  for (int idxi = 0; idxi < 3; idxi++) {
+    for (int idxv = 0; idxv < nt; idxv++) {
+      R(t1(idxv, idxi), t2(idxv, idxi)) +=
+          Du * (Dphi.row(idxi).array() * Dphi.row(idxi).array()).vector();
+
+      R(t1(idxv, idxi) + np, t2(idxv, idxj) + np) +=
+          Dv * (Dphi.row(idxi).array() * Dphi.row(idxi).array()).vector();
+    }
+  }
 
   return R;
 }
