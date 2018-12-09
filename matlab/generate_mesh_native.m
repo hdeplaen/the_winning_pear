@@ -1,6 +1,6 @@
-function varargout = generate_mesh(varargin)
+function varargout = generate_mesh_native(varargin)
 %Generates mesh for the pear problem
-%   [p,e,t,model,axis_s] = generate_mesh(hmax,type,export_csv,plot_mesh)
+%   [p,e,t] = generate_mesh(hmax,type,export_csv,plot_mesh)
 %
 % INPUT
 %   hmax: maximum edge length (controls the mesh concentration)
@@ -9,10 +9,8 @@ function varargout = generate_mesh(varargin)
 %   plot_mesh: plot mesh (true or false)
 % OUTPUT
 %   p: mesh points (2*np matrix)
-%   e: mesh edges (7*ne matrix)
-%   t: mesh triangles (4*nt matrix)
-%   model: pde model in Matlab format for use in native functions
-%   axis_s: inex of the axis of symmetry (gamma2)
+%   e: mesh edges (3*ne matrix)
+%   t: mesh triangles (2*nt matrix)
 %
 %Author: Henri De Plaen
 %KU Leuven
@@ -61,11 +59,11 @@ e(:,3) = 1 ;
 idx_s = e_old(:,5) == axis_s ;
 e(idx_s,3) = 2 ; 
 
-p = 0.05*p ;
+p = p/50 ;
 
 %% PLOT
 if plot_mesh
-    pdemesh(model,'NodeLabels','on') ; %,'ElementLabels','on') ;
+    pdemesh(model,'NodeLabels','off') ; %,'ElementLabels','on') ;
     title('Pear mesh') ;
     xlabel('x') ; ylabel('y') ;
     axis([-.1 0.35 -.1 1.1]) ;
@@ -84,12 +82,10 @@ if export_csv
 end
 
 %% RETURN
-assert(nargout==5, 'Wrong number of input parameters (5)') ;
+assert(nargout==3, 'Wrong number of input parameters (3)') ;
 
 varargout{1} = p' ;
 varargout{2} = e' ;
 varargout{3} = t' ;
-varargout{4} = model ;
-varargout{5} = axis_s ;
 
 end

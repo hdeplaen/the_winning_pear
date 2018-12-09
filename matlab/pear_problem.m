@@ -37,7 +37,7 @@ max_it = 1e+3 ;
 tol_min = 1e-10 ;
 
 %% TYPE OF PROBLEM
-variables = generate_variables('pear',Tcel, eta_u, eta_v) ;                      % problem variables
+variables = generate_variables('pear',Tcel, eta_u, eta_v) ;   % problem variables
 [p,e,t] = generate_mesh(hmax,type,0,0) ;                      % mesh parameters
 
 K = stiff_matrix(p,t,variables,refer) ;                       % compute stiff matrix
