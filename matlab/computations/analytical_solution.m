@@ -1,26 +1,24 @@
 clear all ; clc ;
 
-syms A B C R alpha beta gamma1 gamma2 r
+syms A B C Source R r hu Dur Cuamb r2
 
-f = A*cos(C*r) + B*sin(C*r) ;
+Cu = A*exp(-C*r)/r + B*exp(C*r)/C/r ;
 
-df = diff(f,r) ;
+dCu = diff(Cu,r) ;
 
-d2f = 1/r^2*diff(r^2*df,r) ;
+d2Cu = diff(dCu,r) ;
+d2Cur = 1/r*diff(r*dCu,r) ;
 
-bnd = alpha*f+beta ;
+bnd = subs(hu/Dur*(Cu-Cuamb),r,R) ;
 
+% r = 0 ;
+% B = solve(subs(dCu)==0, B) ;
+A = -B/C ;
 
-r = 0 ; 
-B = solve(subs(df)==0, B) ;
+% C = solve(subs(r^2*d2Cu+2*r*dCu) == subs(r^2*Source*Cu), C) ; % OK
 
-r = R ;
-A = solve(subs(df)==subs(bnd), A) ;
+r = R ; r2 = R ;
+A = solve(subs(dCu)==subs(bnd), A) ;
 
 syms r ;
-%Rf = f ;
-Rf = (beta*(2*sin(r) + r*cos(r)))/(r*sin(C*R) + alpha*r*cos(R)) ;
-pretty(simplify(subs(d2f)))
-% C = solve(subs(d2f)==subs(Rf),C) ;
-% 
-% pretty(simplify(subs(f))) ;
+subs(Cu) ;

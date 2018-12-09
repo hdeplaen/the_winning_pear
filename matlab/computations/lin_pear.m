@@ -1,11 +1,9 @@
-clear all ; close all ; clc ;
-
 syms Vmu Cu Kmu Cv Kmv rq Vmfv Kmfu ;
 
-Ru = -Vmu*Cu/((Kmu+Cu)*(1+Cv/Kmv)) ;
+Ru = Vmu*Cu/((Kmu+Cu)*(1+Cv/Kmv)) ;
 pretty(Ru) ;
 
-Rv = -rq*Ru + Vmfv/(1+Cu/Kmfu) ;
+Rv = rq*Ru + Vmfv/(1+Cu/Kmfu) ;
 pretty(Rv) ;
 
 RudCu = simplify(diff(Ru,Cu))

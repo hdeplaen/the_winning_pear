@@ -1,23 +1,22 @@
 function varargout = generate_mesh(varargin)
 %Generates mesh for the pear problem
-%   [p,e,t,model,axis_s] = generate_mesh(hmax,type,export_csv,plot_mesh)
+%   [p,e,t] = generate_mesh(hmax,type,export_csv,plot_mesh)
 %
 % INPUT
-%   hmax: maximum edge length (controls the mesh concentration)
-%   type: 'pear' or 'test'
-%   export_csv: create csv (true or false)
-%   plot_mesh: plot mesh (true or false)
+%   hmax        : maximum edge length (controls the mesh concentration)
+%   type        : 'pear' or 'test'
+%   export_csv  : create csv (true or false)
+%   plot_mesh   : plot mesh (true or false)
 % OUTPUT
-%   p: mesh points (2*np matrix)
-%   e: mesh edges (7*ne matrix)
-%   t: mesh triangles (4*nt matrix)
-%   model: pde model in Matlab format for use in native functions
-%   axis_s: inex of the axis of symmetry (gamma2)
+%   p           : mesh points (2*np matrix)
+%   e           : mesh edges (3*ne matrix) with e(3,:) index of boundary (1 for
+%                 exterior, 2 for axis)
+%   t           : mesh triangles (4*nt matrix)
 %
 %Author: Henri De Plaen
 %KU Leuven
 %Project WIT: the winning pear
-%Date: Nov 2018
+%Date: Dec 2018
 
 %% PRELIMINARIES
 assert(nargin==4, 'Wrong number of input arguments (4)' ) ;
@@ -26,33 +25,30 @@ type = varargin{2} ;
 export_csv = varargin{3} ;
 plot_mesh = varargin{4} ;
 
-%% MESH
-model = createpde(1) ;
-
-% create geometry of good model
+%% BOUNDARY
 switch type
     case 'test'
-        C1 = [1,0,1,1]';
-        R1 = [3,4,-1,-1,0,0,2,0,0,2]' ;
-        C1 = [C1;zeros(length(R1) - length(C1),1)];
-        gm = [R1,C1];
-        sf = 'C1-R1';
-        ns = char('R1','C1');
-        ns = ns';
-        g = decsg(gm,sf,ns);
-        geometryFromEdges(model,g) ;
+        ep = half_circle(round(1/hmax)) ;
         
-        axis_s = 1 ;
     case 'pear'
-        geometryFromEdges(model,@pear_geometry) ;
-        axis_s = 6 ;
+        ep = eval_geometry(@pear_geometry,round(1/hmax)) ;
     otherwise
         error('type not recongized') ;
 end
 
-% generate mesh
-mesh = generateMesh(model,'GeometricOrder','linear', 'Hgrad', 1.9, 'Hmax', hmax) ;
-[p,e,t] = meshToPet(mesh);
+%% EVULATE MESH
+figure ;
+[p,t]=distmesh_2d(@dpoly,@huniform,hmax,[-1,-1; 1,2],1e+3,ep,ep);
+e_temp = boundary(p(:,1),p(:,2)) ;
+
+e(1,:) = e_temp(1:end-1)' ;
+e(2,:) = e_temp(2:end)' ;
+e(3,:) = 1 ;
+
+log_temp = p(e_temp,1) < 1e-3 ;
+idx_g2 = or(log_temp(1:end-1),log_temp(2:end)) ;
+e(3,idx_g2) = 2 ;
+
 
 %% PLOT
 if plot_mesh
@@ -75,12 +71,60 @@ if export_csv
 end
 
 %% RETURN
-assert(nargout==5, 'Wrong number of input parameters (5)') ;
+assert(nargout==3, 'Wrong number of output arguments (3)') ;
 
-varargout{1} = p' ;
+varargout{1} = p ;
 varargout{2} = e' ;
-varargout{3} = t' ;
-varargout{4} = model ;
-varargout{5} = axis_s ;
+varargout{3} = t ;
+
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function ep = eval_geometry(geom_function, prec)
+
+ne = feval(geom_function) ;                     % number of edges
+prec = round(prec/ne/12) ;
+
+ep = zeros(ne*prec,2) ;                      % prealloc
+s = linspace(0,1,prec) ;                       % arc range
+
+for idx = 1:ne
+    [x,y] = feval(geom_function,idx,s) ;
+    ep( (idx-1)*prec+1 : (idx)*prec, 1) = x(:) ;
+    ep( (idx-1)*prec+1 : (idx)*prec, 2) = y(:) ;
+end
+
+ep = ep/20 ;
+
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function ep = half_circle(prec)
+
+n_points_circle  = 32 ;
+n_points_quarter = n_points_circle/2 ;
+n_points_total   = 50 ;
+
+r = zeros(n_points_total+1,1) ;         % prealloc
+z = zeros(n_points_total+1,1) ;         % prealloc
+
+for idx = 2:n_points_total+1
+    if idx <= n_points_circle + 1
+        r(idx) = sin((idx-1) * pi/2/n_points_quarter) ;
+        z(idx) = cos((idx-1) * pi/2/n_points_quarter) ;
+     elseif idx > n_points_circle + 1
+        r(idx) = 0;
+        z(idx) = -1 + 2 * (idx-n_points_circle-1)/ ...
+            (n_points_total-n_points_circle) ;
+    end
+end
+
+ep(:,1) = r(:) ;
+ep(:,2) = z(:) ;
+ep(1,:) = [0 1] ;
+
+ep = ep/20 ;             % resizing
 
 end
