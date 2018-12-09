@@ -24,15 +24,15 @@ Cv = sol(n_sol/2+1:end,:) ;     % sub-vector corresponding to Cv
 
 %% COMPUTE SOURCE TERM
 % SOURCE TERM FUNCTION
-Ru = variables.Vmu.*Cu./((variables.Kmu+Cu).*(1+Cv./variables.Kmv)) ;
+Ru = -variables.Vmu.*Cu./((variables.Kmu+Cu).*(1+Cv./variables.Kmv)) ;
 
-Rv = variables.rq.*Ru + variables.Vmfv./(1+Cu./variables.Kmfu) ;
+Rv = -variables.rq.*Ru + variables.Vmfv./(1+Cu./variables.Kmfu) ;
 
 % SOURCE TERM JACOBIAN
-RudCu = (variables.Kmu.*variables.Kmv.*variables.Vmu)./ ...
+RudCu = -(variables.Kmu.*variables.Kmv.*variables.Vmu)./ ...
     ((Cu + variables.Kmu).^2.*(Cv + variables.Kmv)) ;
 
-RudCv = -(Cu.*variables.Kmv.*variables.Vmu)./ ...
+RudCv = (Cu.*variables.Kmv.*variables.Vmu)./ ...
     ((Cu + variables.Kmu).*(Cv + variables.Kmv).^2) ; 
 
 RvdCu = (variables.Kmv.*variables.Vmu.*variables.rq)./ ...
@@ -43,11 +43,5 @@ RvdCu = (variables.Kmv.*variables.Vmu.*variables.rq)./ ...
 
 RvdCv = -(Cu.*variables.Kmv.*variables.Vmu.*variables.rq)./ ...
     ((Cu + variables.Kmu).*(Cv + variables.Kmv).^2) ;
-
-RudCu = diag(RudCu) ;
-RvdCu = diag(RvdCu) ;
-RudCv = diag(RudCv) ;
-RvdCv = diag(RvdCv) ;
-
 
 end
