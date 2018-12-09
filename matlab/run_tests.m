@@ -2,8 +2,8 @@
 delete(get(0,'Children')) ;     % delete restant waitbars
 clear all ; close all ; clc ;   % start again from scratch
 
-%% RUN PEARS
-type = 'pear' ;
+%% RUN TESTS
+type = 'test' ;
 refer = 'radial' ;
 hmax = 0.0008 ;
 
