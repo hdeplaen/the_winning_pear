@@ -9,9 +9,9 @@ At present, no good methods are available to measure internal gas concentrations
 
 
 ## Results
-Plot information: left O2 and right CO2 concentration
+Plot information: left O2 and right CO2 concentration (last image is the mesh used to compute FEM)
 
-<img src="/matlab/results/disorder-inducing.png?raw=true" width="280"> <img src="/matlab/results/optimal-ca.png?raw=true" width="280"> <img src="/matlab/results/pre-cooling.png?raw=true" width="280"> <img src="/matlab/results/refrigerator.png?raw=true" width="280"> <img src="/matlab/results/shelf-life.png?raw=true" width="280">
+<img src="/matlab/results/disorder-inducing.png?raw=true" width="280"> <img src="/matlab/results/optimal-ca.png?raw=true" width="280"> <img src="/matlab/results/pre-cooling.png?raw=true" width="280"> <img src="/matlab/results/refrigerator.png?raw=true" width="280"> <img src="/matlab/results/shelf-life.png?raw=true" width="280"> <img src="/matlab/results/_mesh_generation.png?raw=true" width="280">
 
 ## To do
 Finish C++
