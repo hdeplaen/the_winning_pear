@@ -3,7 +3,7 @@ After harvest, the respiration metabolism of pome fruit, apple and pear, still r
 
 As the exchange of metabolic gasses, such as oxygen and carbon dioxide, is crucial for maintaining normal metabolic/physiological functioning, it is important to study/understand how these gasses are transported and distributed within the fruit structure.
 
-At present, no good methods are avail- able to measure internal gas concentrations in fruit. Therefore, in recent years, a sci- entific computing approach has been adopted to simulate and predict internal gas concentrations/distributions. Furthermore, this approach allows to study the effect of fruit geometry (shape and size) or controlled storage conditions on local oxygen and carbon diox- ide concentrations, while reducing experimental costs.
+At present, no good methods are available to measure internal gas concentrations in fruit. Therefore, in recent years, a scientific computing approach has been adopted to simulate and predict internal gas concentrations/distributions. Furthermore, this approach allows to study the effect of fruit geometry (shape and size) or controlled storage conditions on local oxygen and carbon diox- ide concentrations, while reducing experimental costs.
 
 [(Source)](/doc/STATEMENT.pdf)
 
@@ -11,7 +11,7 @@ At present, no good methods are avail- able to measure internal gas concentratio
 ## Results
 Plot information: left O2 and right CO2 concentration
 
-<img src="/matlab/results/disorder-inducing.png?raw=true" width="410"> <img src="/matlab/results/optimal-ca.png?raw=true" width="410"> <img src="/matlab/results/pre-cooling.png?raw=true" width="410"> <img src="/matlab/results/shelf-life.png?raw=true" width="410">
+<img src="/matlab/results/disorder-inducing.png?raw=true" width="280"> <img src="/matlab/results/optimal-ca.png?raw=true" width="280"> <img src="/matlab/results/pre-cooling.png?raw=true" width="280"> <img src="/matlab/results/refrigerator.png?raw=true" width="280"> <img src="/matlab/results/shelf-life.png?raw=true" width="280">
 
 ## To do
 Finish C++
