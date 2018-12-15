@@ -1,4 +1,4 @@
-function varargout = grad_phi(varargin)
+function varargout = triangle_area(varargin)
 %Gradient of basis functions
 %   [dphi1 , dphi2 , dphi3, T] = grad_phi(p,t,variables,refer,wvar)
 %

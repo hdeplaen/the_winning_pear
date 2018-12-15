@@ -61,13 +61,13 @@ end
 %% EXPORT CSV
 if export_csv
     % format needed for C++ program (to be completed later)
-    node_csv = t(1:3,:)'-1 ;
-    xp_csv = p(1,:)' ;
-    yp_csv = p(2,:)' ;
+    node_csv = t(:,1:3)'-1 ;
+    points_csv = p(:,1:2)' ;
+    boundary_csv = e ;
     
-    csvwrite('node.csv',node_csv) ;
-    csvwrite('xp.csv',xp_csv) ;
-    csvwrite('yp.csv',yp_csv) ;
+    csvwrite('exports/node.csv',node_csv) ;
+    csvwrite('exports/points.csv',points_csv) ;
+    csvwrite('exports/boundary.csv',boundary_csv) ;
 end
 
 %% RETURN

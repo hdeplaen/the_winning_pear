@@ -38,7 +38,7 @@ tol_min = 1e-10 ;
 
 %% TYPE OF PROBLEM
 variables = generate_variables('pear',Tcel, eta_u, eta_v) ;   % problem variables
-[p,e,t] = generate_mesh(hmax,type,0,0) ;                      % mesh parameters
+[p,e,t] = generate_mesh(hmax,type,1,0) ;                      % mesh parameters
 
 K = stiff_matrix(p,t,variables,refer) ;                       % compute stiff matrix
 [Bu,Bv,Kbu,Kbv] = boundary_vector(p,e,variables,refer) ;      % compute boundary
