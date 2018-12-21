@@ -12,8 +12,10 @@ typedef Eigen::VectorXi VecI;
 typedef Eigen::SparseMatrix<double, Eigen::RowMajor> SpMat;
 
 namespace pear {
-void boundary_vector(Vec &xp, Vec &yp, Vec &g1, Vec &g2, Vec &B, Mat &Kb);
+void boundary_vector(Vec &xp, Vec &yp, MatI &boundary, Vec &Bu, Vec &Bv,
+                     Mat &Kbu, Mat &Kbv);
 void boundary_func(Vec &xp, Vec &bu, Vec &bv, Vec &kbu, Vec &kbv);
+void compute_skin(MatI &boundary, VecI &g1, VecI &g2);
 } // namespace pear
 
 #endif

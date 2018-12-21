@@ -6,9 +6,9 @@
 namespace pear {
 
 // SIMULATION PARAMETERS
-const double Tcel = 25;
+const double Tcel = 20;
 const double eta_u = 20.8 / 100;
-const double eta_v = 0.04 / 100;
+const double eta_v = 0.00 / 100;
 
 // OTHER AND DEPENDING PARAMETERS
 const double T = Tcel + 273.15;

@@ -1,4 +1,4 @@
-function [R] = stiff_matrix(p,t,variables,~)
+function [K] = stiff_matrix(p,t,variables,~)
 %STIFF_MATRIX Outputs stiff matrix
 %   Henri De Plaen, KU Leuven
 %
@@ -20,9 +20,9 @@ nt = size(t,1) ; % number of triangles
 % Du = [variables.Dur*ones(nt,1) variables.Duz*ones(nt,1)];
 % Dv = [variables.Dvr*ones(nt,1) variables.Dvz*ones(nt,1)];
 
-%% CONSTRUCTION OF THE STIFFNESS MATRIX
-Ru = zeros(np,np) ; % prealloc
-Rv = zeros(np,np) ; % prealloc
+%% CONSTKuCTION OF THE STIFFNESS MATRIX
+Ku = zeros(np,np) ; % prealloc
+Kv = zeros(np,np) ; % prealloc
 
 for m = 1:length(t)
     % nodes of the mesh element (triangle)
@@ -30,26 +30,27 @@ for m = 1:length(t)
     r = p(t_loc,1) ;
     z = p(t_loc,2) ;
     
-    Ru(t_loc,t_loc) = Ru(t_loc,t_loc) + ...
+    Ku(t_loc,t_loc) = Ku(t_loc,t_loc) + ...
         stiff_block(r,z,variables.Dur,variables.Duz);
-    Rv(t_loc,t_loc) = Rv(t_loc,t_loc) + ...
+    Kv(t_loc,t_loc) = Kv(t_loc,t_loc) + ...
         stiff_block(r,z,variables.Dvr,variables.Dvz);
 end
 
-R = [sparse(Ru) sparse(np,np) ; sparse(np,np) sparse(Rv)] ;
+K = [sparse(Ku) sparse(np,np) ; sparse(np,np) sparse(Kv)] ;
 
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [ R_block ] = stiff_block(r,z, Dr, Dz)
-[T,~,dphi1,dphi2] = grad_phi(r,z) ;
-R_block = zeros(3,3) ;
+function [ K_block ] = stiff_block(xp,yp, Dr, Dz)
+[T,~,dphi2,dphi3] = grad_phi(xp,yp) ;
+K_block = zeros(3,3) ;
 
-for i = 1:3
-   for j = 1:3       
-       R_block(i,j) = (r(1) + r(2) + r(3))./(12*T).* ...
-           (Dr*dphi1(i)*dphi1(j) + Dz*dphi2(i)*dphi2(j)) ;
+for idx1 = 1:3
+   for idx2 = 1:3       
+       K_block(idx1,idx2) = (sum(xp)).* ...
+           (Dr*dphi2(idx1)*dphi2(idx2) + ...
+           Dz*dphi3(idx1)*dphi3(idx2))./(12*T) ;
    end
 end
 
@@ -57,13 +58,13 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [T,dphi1,dphi2,dphi3] = grad_phi(r,z)
+function [T,dphi1,dphi2,dphi3] = grad_phi(xp,yp)
     dphi1 = [] ;
-    dphi2 = circshift(z,2)-circshift(z,1) ;
-    dphi3 = circshift(r,1)-circshift(r,2) ;
+    dphi2 = circshift(yp,2)-circshift(yp,1) ;
+    dphi3 = circshift(xp,1)-circshift(xp,2) ;
     
     % mesh element area
-    T = r(2)*z(3)+r(1)*z(2) + ...
-        r(3)*z(1) - r(2)*z(1) - ...
-        r(1)*z(3) - r(3)*z(2) ; 
+    T = xp(2)*yp(3) + xp(1)*yp(2) + ...
+        xp(3)*yp(1) - xp(2)*yp(1) - ...
+        xp(1)*yp(3) - xp(3)*yp(2) ; 
 end

@@ -8,106 +8,62 @@
 #include <Eigen/SparseCore>
 
 namespace pear {
-void grad_phi(Vec &xp, Vec &yp, Vec &t, Mat &Dphi1, Mat &Dphi2, Mat &Dphi3,
-              Vec &T) {
-  int np = p.rows();
+void grad_phi(Vec &xp, Vec &yp, double &T, Vec &Dphi2, Vec &Dphi3) {
 
-  VecI t1 = t.col(0);
-  VecI t2 = t.col(1);
-  VecI t3 = t.col(2);
+  Dphi2 << yp(1) - yp(2), yp(2) - yp(0), yp(0) - yp(1);
+  Dphi3 << xp(2) - xp(1), xp(0) - xp(2), xp(1) - xp(0);
 
-  Vec r1 = pear::extract<Vec>(xp, t1);
-  Vec r2 = pear::extract<Vec>(xp, t2);
-  Vec r3 = pear::extract<Vec>(xp, t3);
-  Vec z1 = pear::extract<Vec>(yp, t1);
-  Vec z2 = pear::extract<Vec>(yp, t2);
-  Vec z3 = pear::extract<Vec>(yp, t3);
-
-  Vec r21 = r2 - r1;
-  Vec z21 = z2 - z1;
-  Vec r32 = r3 - r2;
-  Vec z32 = z3 - z2;
-  Vec r31 = r3 - r1;
-  Vec z31 = z3 - z1;
-
-  // ADDITIONS
-  Vec z = (z1 + z2 + z3) / 3;
-  Vec r = (r1 + r2 + r3) / 3;
-
-  // AREA OF THE TRIANGLES
-  T = ((r21.array() * z31.array() - z21.array() * r31.array())).vector() / 2;
-
-  // GRADIENTS OF THE BASIS FUNCTIONS
-  Dphi1 << -2 * z32.array() + (r32.array() * z + r2.array() * z3.array() -
-                               r3.array() * z2.array()) /
-                                  r.array(),
-      r32.array();
-
-  Dphi2 << 2 * z31.array() -
-               (r31.array() * z.array() + r1.array() * z3.array() -
-                r3.array() * z1.array()) /
-                   r.array(),
-      -r31.array();
-  Dphi3 << -2 * z21.array() +
-               (r21.array() * z.array() + r1.array() * z2.array() -
-                r2.array() * z1.array()) /
-                   r.array(),
-      r21.array();
-
-  Dphi1 = Dphi1 / 2;
-  Dphi2 = Dphi2 / 2;
-  Dphi3 = Dphi3 / 2;
+  T = xp(1) * yp(2) + xp(0) * yp(1) + xp(2) * yp(0) - xp(1) * yp(0) -
+      xp(0) * yp(2) - xp(2) * yp(1);
 }
 
-SpMat stiff(Vec &xp, Vec &yp, MatI &node, int boundary_vertices) {
+Mat stiff_block(Vec &xp, Vec &yp, double Dr, double Dz) {
+
+  Mat K_block(3, 3);
+
+  Vec Dphi2(3);
+  Vec Dphi3(3);
+  double T = 1;
+
+  grad_phi(xp, yp, T, Dphi2, Dphi3);
+
+  for (int idx1 = 0; idx1 < 3; idx1++) {
+    for (int idx2 = 0; idx2 < 3; idx2++) {
+      K_block(idx1, idx2) =
+          (xp(0) + xp(1) + xp(2)) *
+          (Dr * Dphi2(idx1) * Dphi2(idx2) + Dz * Dphi3(idx1) * Dphi3(idx2)) /
+          12 / T;
+    }
+  }
+  return K_block;
+}
+
+void stiff(Vec &xp, Vec &yp, MatI &t, Mat &Ku, Mat &Kv) {
   // PRELIMINARIES
-  int np = p.rows();
+  int np = xp.rows();
   int nt = t.rows();
 
-  Eigen::Vector2d Du(np, 2);
-  Eigen::Vector2d Dv(np, 2);
+  Mat Ku_block(3, 3);
+  Mat Kv_block(3, 3);
 
-  SpMat R(2 * np, 2 * np);
+  VecI t_loc(3);
+  Vec xp_loc(3);
+  Vec yp_loc(3);
 
-  // GRADIENTS OF BASIS FUNCTIONS
-  Mat Dphi1(np, 2);
-  Mat Dphi2(np, 2);
-  Mat Dphi3(np, 2);
-  Vec T(np);
+  for (int idxm = 0; idxm < nt; idxm++) {
+    t_loc = t.row(idxm);
+    xp_loc = pear::extract<Vec>(xp, t_loc);
+    yp_loc = pear::extract<Vec>(yp, t_loc);
 
-  grad_phi(Vec & xp, Vec & yp, Vec & t, Dphi1, Dphi2, Dphi3, T);
-
-  Du[0] = Dur;
-  Du[1] = Duz;
-  Dv[0] = Dvr;
-  Dv[1] = Dvz;
-
-  // CONSTRUCTION OF THE STIFNESS MATRIX
-  for (int idxi = 0; idxi < 3; idxi++) {
-    for (int idxj = 0; idxj < idxi; idx2++) {
-      for (int idxv = 0; idxv < np; idxv++) {
-        R(t1(idxv, idxi), t2(idxv, idxj)) +=
-            Du * (Dphi.row(idxi).array() * Dphi.row(idxj).array()).vector();
-
-        R(t1(idxv, idxi) + np, t2(idxv, idxj) + np) +=
-            Dv * (Dphi.row(idxi).array() * Dphi.row(idxj).array()).vector();
+    Ku_block = stiff_block(xp_loc, yp_loc, pear::Dur, pear::Duz);
+    Kv_block = stiff_block(xp_loc, yp_loc, pear::Dvr, pear::Dvz);
+    for (int idx1 = 0; idx1 < 3; idx1++) {
+      for (int idx2 = 0; idx2 < 3; idx2++) {
+        Ku(t_loc(idx1), t_loc(idx2)) += Ku_block(idx1, idx2);
+        Kv(t_loc(idx1), t_loc(idx2)) += Kv_block(idx1, idx2);
       }
     }
   }
-
-  R += R.transpose();
-
-  for (int idxi = 0; idxi < 3; idxi++) {
-    for (int idxv = 0; idxv < nt; idxv++) {
-      R(t1(idxv, idxi), t2(idxv, idxi)) +=
-          Du * (Dphi.row(idxi).array() * Dphi.row(idxi).array()).vector();
-
-      R(t1(idxv, idxi) + np, t2(idxv, idxj) + np) +=
-          Dv * (Dphi.row(idxi).array() * Dphi.row(idxi).array()).vector();
-    }
-  }
-
-  return R;
 }
 
 } // namespace pear

@@ -32,7 +32,10 @@ template <typename M> M load_csv(const std::string &path) {
     }
     ++rows;
   }
-  return Eigen::Map<M>(values.data(), rows, values.size() / rows);
+  return Eigen::Map<
+      const Eigen::Matrix<typename M::Scalar, M::RowsAtCompileTime,
+                          M::ColsAtCompileTime, Eigen::RowMajor>>(
+      values.data(), rows, values.size() / rows);
 }
 
 template <typename M> void write_csv(const std::string &path, M &matrix) {

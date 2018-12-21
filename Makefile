@@ -13,10 +13,10 @@ TARGETS := stiff boundary function tests main play
 SOURCES := $(TARGETS:=.cpp)
 OBJS    := $(TARGETS:=.o)
 
-OFLAGS := -O2 -O3
+#OFLAGS := -O2 -O3
 #-ffast-math
 PARALLELFLAGS:= -D_GLIBCXX_PARALLEL -fopenmp -pthread -DUSEOMP
-#DEBUGFLAGS:= -g -Wno-stack-protector
+DEBUGFLAGS:= -g -Wno-stack-protector
 CXXFLAGS := -std=c++14
 LDFLAGS  :=
 LIBS :=  -lstdc++ -I Eigen
@@ -27,11 +27,8 @@ EXAMPLE_DEPS = Makefile
 
 all: tests $(BINDIR)main
 
-play: $(BINDIR)play
-	./$(BINDIR)play
-
-tests: $(BINDIR)tests
-	./$(BINDIR)tests
+play: $(BINDIR)run
+	./$(BINDIR)run
 
 clean:
 	rm -rf $(BINDIR)*
@@ -47,18 +44,10 @@ $(BINDIR)boundary.o: $(SRCDIR)boundary.cpp $(EXAMPLE_DEPS)
 	@$(CXX) -c $(CXXFLAGS) $(OFLAGS) $(LIBS) $(PARALLELFLAGS) $(DEBUGFLAGS) -o $(BINDIR)boundary.o $(SRCDIR)boundary.cpp
 $(BINDIR)function.o: $(SRCDIR)function.cpp $(EXAMPLE_DEPS)
 	@$(CXX) -c $(CXXFLAGS) $(OFLAGS) $(LIBS) $(PARALLELFLAGS) $(DEBUGFLAGS) -o $(BINDIR)function.o $(SRCDIR)function.cpp
-
-$(BINDIR)tests.o: $(SRCDIR)tests.cpp $(EXAMPLE_DEPS)
-	@$(CXX) -c $(CXXFLAGS) $(OFLAGS) $(LIBS) $(PARALLELFLAGS) $(DEBUGFLAGS) -o $(BINDIR)tests.o $(SRCDIR)tests.cpp
-$(BINDIR)tests: $(BINDIR)tests.o $(BINDIR)stiff.o $(BINDIR)boundary.o $(BINDIR)function.o
-	@$(CXX) $(LDFLAGS) $(PARALLELFLAGS) $(DEBUGFLAGS) -o $(BINDIR)tests $(BINDIR)tests.o $(BINDIR)stiff.o $(BINDIR)boundary.o $(BINDIR)function.o $(LIBS)
+$(BINDIR)integrate_func.o: $(SRCDIR)integrate_func.cpp $(EXAMPLE_DEPS)
+	@$(CXX) -c $(CXXFLAGS) $(OFLAGS) $(LIBS) $(PARALLELFLAGS) $(DEBUGFLAGS) -o $(BINDIR)integrate_func.o $(SRCDIR)integrate_func.cpp
 
 $(BINDIR)main.o: $(SRCDIR)main.cpp $(EXAMPLE_DEPS)
 	@$(CXX) -c $(CXXFLAGS) $(OFLAGS) $(LIBS) $(PARALLELFLAGS) $(DEBUGFLAGS) -o $(BINDIR)main.o $(SRCDIR)main.cpp
-$(BINDIR)main: $(BINDIR)main.o $(BINDIR)stiff.o $(BINDIR)boundary.o $(BINDIR)function.o
-	@$(CXX) $(LDFLAGS) $(PARALLELFLAGS) $(DEBUGFLAGS) -o $(BINDIR)main $(BINDIR)main.o $(BINDIR)stiff.o $(BINDIR)boundary.o $(BINDIR)function.o $(LIBS)
-
-$(BINDIR)play.o: $(SRCDIR)play.cpp $(EXAMPLE_DEPS)
-	@$(CXX) -c $(CXXFLAGS) $(OFLAGS) $(LIBS) $(PARALLELFLAGS) $(DEBUGFLAGS) -o $(BINDIR)play.o $(SRCDIR)play.cpp
-$(BINDIR)play: $(BINDIR)play.o
-	@$(CXX) $(LDFLAGS) $(PARALLELFLAGS) $(DEBUGFLAGS) -o $(BINDIR)play $(BINDIR)play.o $(LIBS)
+$(BINDIR)main: $(BINDIR)main.o $(BINDIR)stiff.o $(BINDIR)boundary.o $(BINDIR)function.o $(BINDIR)integrate_func.o
+	@$(CXX) $(LDFLAGS) $(PARALLELFLAGS) $(DEBUGFLAGS) -o $(BINDIR)main $(BINDIR)main.o $(BINDIR)stiff.o $(BINDIR)boundary.o $(BINDIR)function.o $(BINDIR)integrate_func.o $(LIBS)

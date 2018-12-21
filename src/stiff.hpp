@@ -12,9 +12,9 @@ typedef Eigen::VectorXi VecI;
 typedef Eigen::SparseMatrix<double, Eigen::RowMajor> SpMat;
 
 namespace pear {
-void grad_phi(Vec &xp, Vec &yp, Vec &t, Mat &Dphi1, Mat &Dphi2, Mat &Dphi3,
-              Vec &T);
-SpMat stiff(Vec &xp, Vec &yp, MatI &node, int boundary_vertices);
+void grad_phi(Vec &xp, Vec &yp, double &T, Vec &Dphi2, Vec &Dphi3);
+Mat stiff_block(Vec &xp, Vec &yp, double Dr, double Dz);
+void stiff(Vec &xp, Vec &yp, MatI &t, Mat &Ku, Mat &Kv);
 } // namespace pear
 
 #endif
