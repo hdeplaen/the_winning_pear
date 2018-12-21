@@ -9,7 +9,10 @@
 #include <cstdlib>
 #include <iostream>
 
+#include <Eigen/Cholesky>
 #include <Eigen/Core>
+#include <Eigen/LU>
+#include <Eigen/QR>
 #include <Eigen/Sparse>
 
 // TYPE DEFINITIONS
@@ -20,8 +23,9 @@ typedef Eigen::VectorXi VecI;
 typedef Eigen::SparseMatrix<double, Eigen::RowMajor> SpMat;
 
 int main(int args, char *argv[]) {
+
   // PRELIMINARIES
-  int max_iter = 20; // 1E+3;
+  int max_iter = 1E+2; // 1E+3;
   double tol_min = 1E-10;
   double tol = 1;
 
@@ -64,6 +68,8 @@ int main(int args, char *argv[]) {
 
   solver.compute(Ku + (pear::Vmu / pear::Kmu) * int_F - Kbu);
   Cu = solver.solve(Bu);
+
+  /* std::cout << Cu << std::endl; */
 
   solver.compute(Kv - Kbv);
   Cv = solver.solve(pear::rq * (pear::Vmu / pear::Kmu) * int_F * Cu + Bv);
@@ -112,7 +118,7 @@ int main(int args, char *argv[]) {
     Cv = sol.block(np, 0, np, 1);
   }
 
-  std::cout << Cu << std::endl;
+  // EXPORTS
   pear::write_csv<Vec>("/Users/hdeplaen/Documents/KULeuven/Project/"
                        "the_winning_pear/exports/cu.csv",
                        Cu);

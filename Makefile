@@ -13,10 +13,9 @@ TARGETS := stiff boundary function tests main play
 SOURCES := $(TARGETS:=.cpp)
 OBJS    := $(TARGETS:=.o)
 
-#OFLAGS := -O2 -O3
-#-ffast-math
+OFLAGS := -O1 #-O3 #-ffast-math
 PARALLELFLAGS:= -D_GLIBCXX_PARALLEL -fopenmp -pthread -DUSEOMP
-DEBUGFLAGS:= -g -Wno-stack-protector
+#DEBUGFLAGS:= -g -Wno-stack-protector
 CXXFLAGS := -std=c++14
 LDFLAGS  :=
 LIBS :=  -lstdc++ -I Eigen
