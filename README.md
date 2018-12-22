@@ -13,9 +13,11 @@ Plot information: left O2 and right CO2 concentration (last image is the mesh us
 
 <img src="/matlab/results/disorder-inducing.png?raw=true" width="280"> <img src="/matlab/results/optimal-ca.png?raw=true" width="280"> <img src="/matlab/results/pre-cooling.png?raw=true" width="280"> <img src="/matlab/results/refrigerator.png?raw=true" width="280"> <img src="/matlab/results/shelf-life.png?raw=true" width="280"> <img src="/matlab/results/_mesh_generation.png?raw=true" width="280">
 
+NB: the matlab function used for the output doesn't support non-convex shapes. Therefore the mesh doesn't perfectly correspond to the output. The filled parts are just rounded by Matlab and are to be neglected.
+
 ## C++ version
 The program is coded in C++. Tu execute it, just run the Makefile (one may want to change the compiler or the flags to suit it to its system). The Eigen library is only constituted of headers - which are included in this git - and needs no installation.
-The program will then be compiled and put into the bin folder. Just run it.
+The program will then be compiled and put into the bin folder.
 
 To change the parameters and the mesh, one may want to rerun the matlab with another mesh and put it into the imports folder. Furthermore, the problem values can be changed in the perameters.hpp file and need recompilation.
 
